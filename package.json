@@ -1,0 +1,17 @@
+{
+  "name": "nestor-music",
+  "version": "0.0.2",
+  "description": "Music library plugin for nestor",
+  "main": "music.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:nestormc/nestor-music.git"
+  },
+  "author": "Nicolas Joyard <joyard.nicolas@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "mongodb": "*",
+    "taglib": "*",
+    "when": "*"
+  }
+}
