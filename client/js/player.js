@@ -154,29 +154,27 @@ define([
 			dom.behave(this.rendered, playerBehaviour(this));
 
 			/* Load state when applet is ready */
-			ui.appletsReady.add(function() {
-				var playlist = storage.get("player/playlist"),
-					playing = Number(storage.get("player/playingTrack", -1)),
-					currentTime = Number(storage.get("player/currentTime", 0));
+			var playlist = storage.get("player/playlist"),
+				playing = Number(storage.get("player/playingTrack", -1)),
+				currentTime = Number(storage.get("player/currentTime", 0));
 
-				if (playlist) {
-					resources.playlists.get(playlist)
-					.then(function(data) {
-						var elements = [].slice.call(playlistTemplate.render({ tracks: data.tracks }).childNodes);
+			if (playlist) {
+				resources.playlists.get(playlist)
+				.then(function(data) {
+					var elements = [].slice.call(playlistTemplate.render({ tracks: data.tracks }).childNodes);
 
-						player.currentPlaylist = playlist;
-						elements.forEach(function(element) {
-							enqueueTrack(player, element);
-						}, player);
+					player.currentPlaylist = playlist;
+					elements.forEach(function(element) {
+						enqueueTrack(player, element);
+					}, player);
 
-						if (playing !== -1) {
-							player.play(playing, currentTime, storage.get("player/playingState", "paused") === "paused");
-						}
+					if (playing !== -1) {
+						player.play(playing, currentTime, storage.get("player/playingState", "paused") === "paused");
+					}
 
-						player.currentPlaylistChanged.dispatch(playlist);
-					});
-				}
-			});
+					player.currentPlaylistChanged.dispatch(playlist);
+				});
+			}
 
 			/* Dispose of all tracks and reset state when ui stops */
 			ui.stopping.add(function() {

@@ -46,14 +46,9 @@ define([
 	};
 
 	return {
-		init: function(music) {
-			music.setupListHandler(
-				"playlists",
-				resources.playlists,
-				dataUpdater,
-				template,
-				behaviour
-			);
-		}
+		resource: resources.playlists,
+		dataUpdater: dataUpdater,
+		template: template,
+		behaviour: behaviour
 	};
 });

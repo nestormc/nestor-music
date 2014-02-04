@@ -2,28 +2,9 @@
 /*global define, console */
 
 define(
-[
-	"ui", "router",
-
-	"albumlist",
-	"player",
-	"playlists",
-
-	"ist!templates/applet"
-],
-function(
-	ui, router,
-
-	albumlist,
-	player,
-	playlists,
-
-	appletTemplate
-) {
+[ "ui", "router", "albumlist", "player", "playlists" ],
+function(ui, router, albumlist, player, playlists) {
 	"use strict";
-
-	var music,
-		currentTrackId, currentPlaylist;
 
 
 	// TODO un-global this
@@ -36,214 +17,208 @@ function(
 						   : hours + "h" + (minutes > 9 ? minutes : "0" + minutes) + "m" + (seconds > 9 ? seconds : "0" + seconds) + "s";
 	};
 
-/*
-	var albumsNestedList = [
-		// Toplevel
-		{
-			template: albumlistTemplate,
-			selector: ".albumlist",
-			children: "artists"
-		},
 
-		// Artists
-		{
-			template: "@use 'music-albums-artist'",
-			key: "name",
-			selector: ".artist[data-name=\"%s\"]",
-			children: "albums"
-		},
 
-		// Albums
-		{
-			template: "@use 'music-albums-album'",
-			key: "_id",
-			selector: ".album[data-id=\"%s\"]",
-			children: "tracks"
-		},
 
-		// Tracks
-		{
-			template: "@use 'music-albums-track'",
-			key: "_id",
-			selector: ".track[data-id=\"%s\"]"
+	/*!
+	 * Player state change handlers
+	 */
+
+
+	var currentTrackId;
+	player.currentTrackChanged.add(function(trackId) {
+		currentTrackId = trackId;
+		if (activeView) refreshCurrentTrack(activeView);
+	});
+
+	var currentPlaylist;
+	player.currentPlaylistChanged.add(function(playlist) {
+		currentPlaylist = playlist;
+		if (activeView) refreshCurrentPlaylist(activeView);
+	});
+
+
+
+	/*!
+	 * Resource list helpers
+	 */
+
+
+	function refreshCurrentTrack(view) {
+		var track = view.$(".track[data-id='" + currentTrackId + "']"),
+			playing = view.$(".track.playing");
+
+		if (playing) {
+			playing.classList.remove("playing");
 		}
-	];
+
+		if (track) {
+			track.classList.add("playing");
+		}
+	}
 
 
-	function nestedListUpdater(container, levels) {
+	function refreshCurrentPlaylist(view) {
+		var playlist = view.$(".playlist[data-name='" + currentPlaylist + "']"),
+			playing = view.$(".playlist.playing"),
+			floating = view.$(".playlist[data-name='!floating']");
+
+		if (floating) {
+			floating.style.display = currentPlaylist === "!floating" ? "block" : "none";
+		}
+
+		if (playing) {
+			playing.classList.remove("playing");
+		}
+
+		if (playlist) {
+			playlist.classList.add("playing");
+		}
+	}
+		
+
+	var activeView;
+	function setupResourceList(view, listdef) {
+		var resource = listdef.resource;
+		var updater = listdef.dataUpdater;
+		var template = listdef.template;
+		var behaviour = listdef.behaviour;
+		var routes = listdef.routes;
+
+		if (routes) {
+			Object.keys(routes).forEach(function(route) {
+				router.on(route, routes[route].bind(null, view));
+			});
+		}
+
+		var loaded = false;
+		var promise;
+		var data;
 		var rendered;
 
-		function renderLevel(index, data) {
-			if (index === 0) {
-				// Top level
-			}
-		}
+		view.displayed.add(function() {
+			activeView = view;
 
-		return function update(data) {
-		};
-	}
-*/
+			if (!promise) {
+				loaded = false;
+				promise = resource.list();
 
+				data = updater(data, []);
 
-	music = {
-		manifest: {
-			"title": "music",
-			"pages": {
-				"albums": {},
-				"playlists": { icon: "playlist" }
-			}
-		},
-
-		currentContainer: null,
-
-		setupListHandler: function(route, resource, updater, template, behaviour) {
-			var loaded = false,
-				promise, data, rendered;
-
-			router.on(route, function(err, req, next) {
-				if (err) {
-					next(err);
-					return;
+				// Render template
+				try {
+					rendered = template.render(data);
+				} catch(e) {
+					console.log("RENDER: " + e.stack);
 				}
 
-				var container = ui.container(route);
+				view.appendChild(rendered);
 
-				if (!promise) {
-					loaded = false;
-					promise = resource.list();
-
-					data = updater(data, []);
-
-					// Render template
-					try {
-						rendered = template.render(data);
-					} catch(e) {
-						console.log("RENDER: " + e.stack);
+				// Add scroll handler to load more
+				view.scrolledToEnd.add(function() {
+					if (!loaded) {
+						view.$(".loading").style.display = "block";
+						promise.fetchMore();
 					}
-					container.appendChild(rendered);
+				});
 
+				promise
+				.whenData(function(items) {
+					// Call data updater
+					data = updater(data, items);
 
-					// Add scroll handler to load more
-					container.scrolledToEnd.add(function() {
-						if (!loaded) {
-							container.$(".loading").style.display = "block";
-							promise.fetchMore();
-						}
-					});
+					// Update template
+					try {
+						rendered.update(data);
+					} catch(e) {
+						console.log("UPDATE: " + e.stack);
+					}
 
-					promise
-					.whenData(function(items) {
-						// Call data updater
-						data = updater(data, items);
+					refreshCurrentTrack(view);
+					refreshCurrentPlaylist(view);
 
-						// Update template
-						try {
-							rendered.update(data);
-						} catch(e) {
-							console.log("UPDATE: " + e.stack);
-						}
+					view.$(".loading").style.display = "none";
+					view.behave(behaviour);
+				})
+				.then(function() {
+					// Nothing more to load
+					loaded = true;
+				})
+				.otherwise(function(err) {
+					console.log(err);
+				});
 
-						music.refreshCurrentTrack();
-						music.refreshCurrentPlaylist();
-
-						container.$(".loading").style.display = "none";
-						container.behave(behaviour);
-					})
-					.then(function() {
-						// Nothing more to load
-						loaded = true;
-					})
-					.otherwise(function(err) {
-						console.log(err);
-					});
-
-					ui.stopping.add(function() {
-						// Cancel loading when UI stops
-						promise.cancel();
-					});
-				}
-
-				music.currentContainer = container;
-				container.show();
-				next();
-			});
-		},
-
-		refreshCurrentTrack: function() {
-			if (music.currentContainer) {
-				var track = music.currentContainer.$(".track[data-id='" + currentTrackId + "']"),
-					playing = music.currentContainer.$(".track.playing");
-
-				if (playing) {
-					playing.classList.remove("playing");
-				}
-
-				if (track) {
-					track.classList.add("playing");
-				}
+				ui.stopping.add(function() {
+					// Cancel loading when UI stops
+					promise.cancel();
+				});
 			}
-		},
 
-		refreshCurrentPlaylist: function() {
-			if (music.currentContainer) {
-				var playlist = music.currentContainer.$(".playlist[data-name='" + currentPlaylist + "']"),
-					playing = music.currentContainer.$(".playlist.playing"),
-					floating = music.currentContainer.$(".playlist[data-name='!floating']");
+		});
+	}
 
-				if (floating) {
-					floating.style.display = currentPlaylist === "!floating" ? "block" : "none";
-				}
 
-				if (playing) {
-					playing.classList.remove("playing");
-				}
 
-				if (playlist) {
-					playlist.classList.add("playing");
-				}
+	/*!
+	 * Global action routes
+	 */
+
+
+	router.on("!enqueue/:id", function(err, req, next) {
+		var track = activeView.$(".track[data-id='" + req.match.id + "']");
+		player.enqueue(track, player.playing === -1 ? 0 : player.playing + 1);
+
+		next();
+	});
+
+	router.on("!add/:id", function(err, req, next) {
+		var track = activeView.$(".track[data-id='" + req.match.id + "']");
+		player.enqueue(track);
+
+		next();
+	});
+
+
+
+	/*!
+	 * Fill views when UI starts
+	 */
+
+
+	ui.started.add(function() {
+		setupResourceList(ui.view("albums"), albumlist);
+		setupResourceList(ui.view("playlists"), playlists);
+
+		var playerView = ui.view("player");
+		playerView.appendChild(player.render());
+		playerView.show();
+	});
+
+
+
+	/*!
+	 * Plugin manifest
+	 */
+
+	return {
+		title: "music",
+		css: "albumlist",
+		views: {
+			player: {
+				type: "applet",
+				css: "player"
+			},
+
+			albums: {
+				type: "main",
+				link: "albums"
+			},
+
+			playlists: {
+				type: "main",
+				link: "playlists",
+				icon: "playlist"
 			}
-		},
-		
-		init: function() {
-			ui.loadCSS("player");
-			ui.loadCSS("albumlist", "");
-
-			albumlist.init(this);
-			playlists.init(this);
-
-			/* Enqueue track actions */
-		
-			router.on("!enqueue/:id", function(err, req, next) {
-				var track = music.currentContainer.$(".track[data-id='" + req.match.id + "']");
-				player.enqueue(track, player.playing === -1 ? 0 : player.playing + 1);
-
-				next();
-			});
-
-			router.on("!add/:id", function(err, req, next) {
-				var track = music.currentContainer.$(".track[data-id='" + req.match.id + "']");
-				player.enqueue(track);
-
-				next();
-			});
-
-			/* Player state changes */
-
-			player.currentTrackChanged.add(function(trackId) {
-				currentTrackId = trackId;
-				music.refreshCurrentTrack();
-			});
-
-			player.currentPlaylistChanged.add(function(playlist) {
-				currentPlaylist = playlist;
-				music.refreshCurrentPlaylist();
-			});
-		},
-		
-		renderApplet: function() {
-			return appletTemplate.render({ player: player.render() });
 		}
 	};
-	
-	return music;
 });

@@ -136,11 +136,11 @@ define([
 		".list": {
 			/* Unselect tracks */
 			"click": function(e) {
-				var container = $P(this, ".container");
+				var view = $P(this, ".main-view");
 
 				e.preventDefault();
 
-				container.$$(".selected").forEach(function(sel) {
+				view.$$(".selected").forEach(function(sel) {
 					sel.classList.remove("selected");
 				});
 
@@ -162,19 +162,19 @@ define([
 				var firstClicked;
 
 				return function(e) {
-					var container = $P(this, ".container");
+					var view = $P(this, ".main-view");
 
 					e.preventDefault();
 					e.stopPropagation();
 
 					if (!e.ctrlKey) {
-						container.$$(".selected").forEach(function(sel) {
+						view.$$(".selected").forEach(function(sel) {
 							sel.classList.remove("selected");
 						});
 					}
 
 					if (e.shiftKey && firstClicked) {
-						var tracks = container.$$("li.track"),
+						var tracks = view.$$("li.track"),
 							idx1 = tracks.indexOf(firstClicked),
 							idx2 = tracks.indexOf(this);
 
@@ -199,11 +199,11 @@ define([
 			}()),
 
 			"dblclick": function(e) {
-				var container = $P(this, ".container");
+				var view = $P(this, ".main-view");
 
 				e.preventDefault();
 
-				var tracks = container.$$(".selected"),
+				var tracks = view.$$(".selected"),
 					index = tracks.indexOf(this);
 
 				if (tracks.length === 1) {
@@ -224,24 +224,19 @@ define([
 
 
 	return {
-		init: function(music) {
-			music.setupListHandler(
-				"albums",
-				resources.tracks,
-				dataUpdater,
-				template,
-				behaviour
-			);
+		resource: resources.tracks,
+		dataUpdater: dataUpdater,
+		template: template,
+		behaviour: behaviour,
 
-			router.on("!shareAlbum/:id/:artist/:title", function(err, req, next) {
+		routes: {
+			"!shareAlbum/:id/:artist/:title": function(view, err, req, next) {
 				share("Album " + req.match.artist + " - " + req.match.title, "album:" + req.match.id);
 				next();
-			});
+			},
 
-			/* Album edition */
-
-			router.on("!editAlbum/:id", function(err, req, next) {
-				var album = music.currentContainer.$(".album[data-id='" + req.match.id + "']");
+			"!editAlbum/:id": function(view, err, req, next) {
+				var album = view.$(".album[data-id='" + req.match.id + "']");
 				album.classList.add("editing");
 
 				$$(album, ".editable").forEach(function(elem) {
@@ -250,10 +245,10 @@ define([
 				});
 
 				next();
-			});
+			},
 
-			router.on("!cancelAlbumEdit/:id", function(err, req, next) {
-				var album = music.currentContainer.$(".album[data-id='" + req.match.id + "']");
+			"!cancelAlbumEdit/:id": function(view, err, req, next) {
+				var album = view.$(".album[data-id='" + req.match.id + "']");
 				album.classList.remove("editing");
 
 				$$(album, ".editable").forEach(function(elem) {
@@ -262,10 +257,10 @@ define([
 				});
 
 				next();
-			});
+			},
 
-			router.on("!commitAlbumEdit/:id", function(err, req, next) {
-				var album = music.currentContainer.$(".album[data-id='" + req.match.id + "']");
+			"!commitAlbumEdit/:id": function(view, err, req, next) {
+				var album = view.$(".album[data-id='" + req.match.id + "']");
 				album.classList.remove("editing");
 
 				var trackUpdates = {},
@@ -323,7 +318,7 @@ define([
 				});
 
 				next();
-			});
+			}
 		}
 	};
 });
