@@ -1,6 +1,6 @@
 {
   "name": "nestor-music",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Music library plugin for nestor",
   "main": "music.js",
   "repository": {
