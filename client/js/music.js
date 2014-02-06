@@ -158,30 +158,8 @@ function(ui, router, albumlist, player, playlists) {
 	}
 
 
-
 	/*!
-	 * Global action routes
-	 */
-
-
-	router.on("!enqueue/:id", function(err, req, next) {
-		var track = activeView.$(".track[data-id='" + req.match.id + "']");
-		player.enqueue(track, player.playing === -1 ? 0 : player.playing + 1);
-
-		next();
-	});
-
-	router.on("!add/:id", function(err, req, next) {
-		var track = activeView.$(".track[data-id='" + req.match.id + "']");
-		player.enqueue(track);
-
-		next();
-	});
-
-
-
-	/*!
-	 * Fill views when UI starts
+	 * Fill views and setup routes when UI starts
 	 */
 
 
@@ -192,6 +170,20 @@ function(ui, router, albumlist, player, playlists) {
 		var playerView = ui.view("player");
 		playerView.appendChild(player.render());
 		playerView.show();
+
+		router.on("!enqueue/:id", function(err, req, next) {
+			var track = activeView.$(".track[data-id='" + req.match.id + "']");
+			player.enqueue(track, player.playing === -1 ? 0 : player.playing + 1);
+
+			next();
+		});
+
+		router.on("!add/:id", function(err, req, next) {
+			var track = activeView.$(".track[data-id='" + req.match.id + "']");
+			player.enqueue(track);
+
+			next();
+		});
 	});
 
 

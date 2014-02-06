@@ -94,82 +94,79 @@ function musicPlugin(nestor) {
 		});
 
 		// Register shared resource handler
-		intents.emit("nestor:share", {
-			provider: "music",
-			handler: function(id, builder, callback) {
-				if (id.indexOf(":") === -1) {
-					callback(new Error("Invalid resource id: " + id));
-					return;
-				}
+		intents.emit("share:provider", "music", function(id, builder, callback) {
+			if (id.indexOf(":") === -1) {
+				callback(new Error("Invalid resource id: " + id));
+				return;
+			}
 
-				var parts = id.split(":"),
-					type = parts.shift();
+			var parts = id.split(":"),
+				type = parts.shift();
 
-				if (type === "track") {
-					var trackId = parts.shift();
-					Track.findById(trackId, function(err, track) {
-						if (err || !track) {
-							callback(new Error("Invalid track: " + trackId));
-							return;
-						}
+			if (type === "track") {
+				var trackId = parts.shift();
+				Track.findById(trackId, function(err, track) {
+					if (err || !track) {
+						callback(new Error("Invalid track: " + trackId));
+						return;
+					}
 
-						builder.addFile(path.basename(track.path), track.path);
-						callback();
-					});
-				} else if (type === "album") {
-					// Find artist and albums, inside which colons have been doubled
-					// (eg artist = "foo", album = "bar:baz" => "foo:bar::baz")
-					var mergedParts = [],
-						state = "search";
+					builder.addFile(path.basename(track.path), track.path);
+					callback();
+				});
+			} else if (type === "album") {
+				// Find artist and albums, inside which colons have been doubled
+				// (eg artist = "foo", album = "bar:baz" => "foo:bar::baz")
+				var mergedParts = [],
+					state = "search";
 
-					parts.forEach(function(part) {
-						switch(state) {
-							case "search":
+				parts.forEach(function(part) {
+					switch(state) {
+						case "search":
+							mergedParts.push(part);
+							state = "part";
+							break;
+
+						case "part":
+							if (part.length) {
 								mergedParts.push(part);
-								state = "part";
-								break;
+							} else {
+								state = "continue";
+							}
+							break;
 
-							case "part":
-								if (part.length) {
-									mergedParts.push(part);
-								} else {
-									state = "continue";
-								}
-								break;
+						case "continue":
+							mergedParts[mergedParts.length - 1] += ":" + part;
+							state = "part";
+							break;
+					}
+				});
 
-							case "continue":
-								mergedParts[mergedParts.length - 1] += ":" + part;
-								state = "part";
-								break;
-						}
+				var artist = mergedParts[0],
+					album = mergedParts[1];
+
+				Track.find({ artist: artist, album: album }, function(err, tracks) {
+					if (err || !tracks || !tracks.length) {
+						callback(new Error("Invalid album: " + parts.join(":")));
+						return;
+					}
+
+					var albumdir = artist + " - " + album;
+
+					tracks.forEach(function(track) {
+						var trackfile =
+								(track.number > 0 ? String("0" + track.number).slice(-2) + " - " : "") +
+								track.title +
+								"." + track.format;
+
+						builder.addFile(path.join(albumdir, trackfile), track.path);
 					});
 
-					var artist = mergedParts[0],
-						album = mergedParts[1];
-
-					Track.find({ artist: artist, album: album }, function(err, tracks) {
-						if (err || !tracks || !tracks.length) {
-							callback(new Error("Invalid album: " + parts.join(":")));
-							return;
-						}
-
-						var albumdir = artist + " - " + album;
-
-						tracks.forEach(function(track) {
-							var trackfile =
-									(track.number > 0 ? String("0" + track.number).slice(-2) + " - " : "") +
-									track.title +
-									"." + track.format;
-
-							builder.addFile(path.join(albumdir, trackfile), track.path);
-						});
-
-						builder.setDownloadFilename(albumdir + ".zip");
-						callback();
-					});
-				} else {
-					callback(new Error("Invalid resource type: " + type));
-				}
+					builder.setDownloadFilename(albumdir + ".zip");
+					callback();
+				});
+			} else {
+				callback(new Error("Invalid resource type: " + type));
 			}
 		});
 	});
@@ -179,7 +176,7 @@ musicPlugin.manifest = {
 	name: "music",
 	description: "Music library",
 	dependencies: ["nestor-media"],
-	recommends: ["nestor-coverart"],
+	recommends: ["nestor-coverart", "nestor-share"],
 	clientDir: __dirname + "/client"
 };
 

@@ -2,12 +2,12 @@
 /*global define */
 
 define([
-	"ui", "dom", "router", "when", "share",
+	"ui", "dom", "router", "when", "plugins",
 
 	"resources", "util", "player",
 
 	"ist!templates/albumlist"
-], function(ui, dom, router, when, share, resources, util, player, template) {
+], function(ui, dom, router, when, plugins, resources, util, player, template) {
 	"use strict";
 
 	var $ = dom.$,
@@ -231,7 +231,7 @@ define([
 
 		routes: {
 			"!shareAlbum/:id/:artist/:title": function(view, err, req, next) {
-				share("Album " + req.match.artist + " - " + req.match.title, "album:" + req.match.id);
+				plugins.share("music", "album:" + req.match.id, "Album " + req.match.artist + " - " + req.match.title);
 				next();
 			},
 
