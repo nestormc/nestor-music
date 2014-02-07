@@ -33,58 +33,13 @@ define([
 						   : hours + "h" + (minutes > 9 ? minutes : "0" + minutes) + "m" + (seconds > 9 ? seconds : "0" + seconds) + "s";
 	}
 
-	function playerBehaviour(player) {
-		return {
-			".cover": {
-				"error": function() {
-					this.src = "images/nocover.svg";
-				}
-			},
-
-			".progress": {
-				"mousedown": function(e) {
-					e.preventDefault();
-
-					this.seeking = true;
-
-					var offset = e.offsetX;
-
-					if (e.toElement !== this) {
-						offset += e.toElement.offsetLeft;
-					}
-
-					player.seekTo(offset / this.offsetWidth);
-
-
-					return false;
-				},
-
-				"mousemove": function(e) {
-					e.preventDefault();
-
-					if (this.seeking) {
-						var offset = e.offsetX;
-
-						if (e.toElement !== this) {
-							offset += e.toElement.offsetLeft;
-						}
-
-						player.seekTo(offset / this.offsetWidth);
-					}
-
-					return false;
-				},
-
-				"mouseup": function(e) {
-					e.preventDefault();
-
-					this.seeking = false;
-
-					return false;
-				}
+	var playerBehaviour = {
+		".cover": {
+			"error": function() {
+				this.src = "images/nocover.svg";
 			}
-		};
-	}
+		}
+	};
 
 
 	function emptyPlaylist(player) {
@@ -150,8 +105,16 @@ define([
 			var player = this;
 
 			this.playlistResource = resources.playlists;
-			this.rendered = template.render();
-			dom.behave(this.rendered, playerBehaviour(this));
+
+			var slider = ui.components.slider();
+			slider.setAvailable(1);
+			slider.changed.add(function(frac) {
+				player.seekTo(frac);
+			});
+
+			this.rendered = template.render({ slider: slider });
+
+			dom.behave(this.rendered, playerBehaviour);
 
 			/* Load state when applet is ready */
 			var playlist = storage.get("player/playlist"),
@@ -419,7 +382,8 @@ define([
 
 			$("#player .elapsed").innerText = audio ? humanTime(current) : "-";
 			$("#player .total").innerText = audio ? humanTime(total) : "-";
-			$("#player .bar").style.width = audio ? Math.floor(100 * current / total) + "%" : 0;
+
+			$("#player .slider").setValue(audio ? current / total : 0);
 		}
 	};
 });
