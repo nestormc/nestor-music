@@ -348,7 +348,7 @@ define([
 			if (this.playing >= 0) {
 				var track = this.tracks[this.playing];
 
-				track.currentTime = track.duration * frac;
+				track.currentTime = track.requestedCurrentTime = track.duration * frac;
 			}
 		},
 
