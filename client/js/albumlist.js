@@ -4,10 +4,10 @@
 define([
 	"ui", "dom", "router", "when", "plugins",
 
-	"resources", "util", "player",
+	"resources", "util", "track",
 
 	"ist!templates/albumlist"
-], function(ui, dom, router, when, plugins, resources, util, player, template) {
+], function(ui, dom, router, when, plugins, resources, util, MusicTrack, template) {
 	"use strict";
 
 	var $ = dom.$,
@@ -214,8 +214,16 @@ define([
 					index = tracks.indexOf(selectedTrack);
 				}
 
-				player.replace(tracks);
-				player.play(index);
+				ui.player.clear();
+				ui.player.enqueue(tracks.map(function(track) {
+					return {
+						provider: "music",
+						id: track.dataset.id,
+						track: new MusicTrack(track)
+					};
+				}));
+
+				ui.player.play(index);
 
 				return false;
 			}

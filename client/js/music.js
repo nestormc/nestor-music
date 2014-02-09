@@ -2,8 +2,8 @@
 /*global define, console */
 
 define(
-[ "ui", "router", "albumlist", "player", "playlists" ],
-function(ui, router, albumlist, player, playlists) {
+[ "ui", "router", "track", "albumlist", "playlists" ],
+function(ui, router, MusicTrack, albumlist, playlists) {
 	"use strict";
 
 
@@ -25,6 +25,7 @@ function(ui, router, albumlist, player, playlists) {
 	 */
 
 
+/*
 	var currentTrackId;
 	player.currentTrackChanged.add(function(trackId) {
 		currentTrackId = trackId;
@@ -36,7 +37,7 @@ function(ui, router, albumlist, player, playlists) {
 		currentPlaylist = playlist;
 		if (activeView) refreshCurrentPlaylist(activeView);
 	});
-
+*/
 
 
 	/*!
@@ -44,6 +45,7 @@ function(ui, router, albumlist, player, playlists) {
 	 */
 
 
+	var currentTrackId;
 	function refreshCurrentTrack(view) {
 		var track = view.$(".track[data-id='" + currentTrackId + "']"),
 			playing = view.$(".track.playing");
@@ -58,6 +60,7 @@ function(ui, router, albumlist, player, playlists) {
 	}
 
 
+	var currentPlaylist;
 	function refreshCurrentPlaylist(view) {
 		var playlist = view.$(".playlist[data-name='" + currentPlaylist + "']"),
 			playing = view.$(".playlist.playing"),
@@ -158,6 +161,11 @@ function(ui, router, albumlist, player, playlists) {
 	}
 
 
+	ui.player.register("music", function(id) {
+		console.error("music track provider not implemented !");
+	});
+
+
 	/*!
 	 * Fill views and setup routes when UI starts
 	 */
@@ -167,20 +175,26 @@ function(ui, router, albumlist, player, playlists) {
 		setupResourceList(ui.view("albums"), albumlist);
 		setupResourceList(ui.view("playlists"), playlists);
 
-		var playerView = ui.view("player");
-		playerView.appendChild(player.render());
-		playerView.show();
-
 		router.on("!enqueue/:id", function(err, req, next) {
 			var track = activeView.$(".track[data-id='" + req.match.id + "']");
-			player.enqueue(track, player.playing === -1 ? 0 : player.playing + 1);
+
+			ui.player.enqueue({
+				provider: "music",
+				id: req.match.id,
+				track: new MusicTrack(track)
+			}, true);
 
 			next();
 		});
 
 		router.on("!add/:id", function(err, req, next) {
 			var track = activeView.$(".track[data-id='" + req.match.id + "']");
-			player.enqueue(track);
+
+			ui.player.enqueue({
+				provider: "music",
+				id: req.match.id,
+				track: new MusicTrack(track)
+			});
 
 			next();
 		});
@@ -196,11 +210,6 @@ function(ui, router, albumlist, player, playlists) {
 		title: "music",
 		css: "albumlist",
 		views: {
-			player: {
-				type: "applet",
-				css: "player"
-			},
-
 			albums: {
 				type: "main",
 				link: "albums"

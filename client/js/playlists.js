@@ -3,10 +3,10 @@
 define([
 	"ui", "dom",
 
-	"resources", "util", "player",
+	"resources", "util",
 
 	"ist!templates/playlists"
-], function(ui, dom, resources, util, player, template) {
+], function(ui, dom, resources, util, template) {
 	"use strict";
 
 	var $$ = dom.$$,

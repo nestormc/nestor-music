@@ -1,106 +1,161 @@
-/*jshint browser:true */
-/*global define, console */
+/*jshint browser:true*/
+/*global define*/
 
 define(["ui"], function(ui) {
 	"use strict";
 
-	function trackDispose(track, events) {
-		Object.keys(events).forEach(function(event) {
-			track.removeEventListener(event, events[event]);
-		});
 
-		track.trackLoaded.dispose();
-		track.pause();
-		track.preload = "none";
-		track.src = "";
-
-		delete track.dispose;
+	function trackPlayable(track) {
+		track.playable.dispatch();
 	}
 
 
-	function trackPlayable(track, player) {
-		var index = player.tracks.indexOf(track);
-
-		track.isPlayable = true;
-
-		// Start playing if player wants to play this track
-		if (player.playing === index) {
-			track.currentTime = track.requestedCurrentTime || 0;
-
-			if (!track.requestedSeekOnly) {
-				track.play();
-			}
-		}
-	}
-
-
-	function trackError(track, player) {
-		console.log("Error with track " + track.data.id);
-		console.dir(track.error);
-		
-		player.trackLoadingFailed.dispatch(track.data.id);
-		trackEnded(track, player);
-	}
-
-
-	function trackEnded(track, player) {
-		var tracks = player.tracks,
-			index = tracks.indexOf(track);
-
-		if (index !== tracks.length - 1) {
-			player.play(index + 1);
-		} else {
-			player.playing = -1;
-			player.updatePlayTime();
-			player.currentTrackChanged.dispatch();
-			player.playStateChanged.dispatch(false);
-		}
+	function trackEnded(track) {
+		track.ended.dispatch();
 	}
 
 
 	function trackLoadProgress(track) {
-		if (track.isLoading && track.buffered.length) {
-			if (Math.abs(track.buffered.end(track.buffered.length - 1) - track.duration) < 0.1) {
-				// Track is loaded
-				track.isLoaded = true;
-				track.isLoading = false;
+		var audio = track.audio;
 
-				track.trackLoaded.dispatch();
+		if (audio.buffered.length) {
+			if (Math.abs(audio.buffered.end(audio.buffered.length - 1) - audio.duration) < 0.1) {
+				track.loaded.dispatch();
 			}
 		}
 	}
 
 
-	function trackTimeUpdate(track, player) {
-		player.updatePlayTime(track);
+	function trackTimeUpdate(track) {
+		track.timeChanged.dispatch(track.audio.currentTime);
 	}
-	
 
-	return function createAudioTrack(player, element) {
+
+	function trackDurationChange(track) {
+		track.lengthChanged.dispatch(track.audio.duration);
+	}
+
+
+	function MusicTrack(element) {
 		var audio = new Audio();
+		this.audio = audio;
 
 		audio.preload = "none";
 		audio.autoplay = false;
-		audio.isLoaded = false;
-		audio.trackLoaded = ui.signal();
 
-		var events = {
-			"canplay": trackPlayable.bind(null, audio, player),
-			"ended": trackEnded.bind(null, audio, player),
-			"timeupdate": trackTimeUpdate.bind(null, audio, player),
-			"progress": trackLoadProgress.bind(null, audio),
-			"error": trackError.bind(null, audio, player)
+		this.data = element.dataset;
+
+		var audioEvents = {
+			"canplay": trackPlayable.bind(null, this),
+			"ended": trackEnded.bind(null, this),
+			"timeupdate": trackTimeUpdate.bind(null, this),
+			"durationchange": trackDurationChange.bind(null, this),
+			"progress": trackLoadProgress.bind(null, this),
+			// "error": trackError.bind(null, this)
 		};
+		this.events = audioEvents;
 
-		Object.keys(events).forEach(function(event) {
-			audio.addEventListener(event, events[event]);
+		Object.keys(audioEvents).forEach(function(event) {
+			audio.addEventListener(event, audioEvents[event]);
 		});
 
-		audio.dispose = trackDispose.bind(null, audio, events);
+		this.playable = ui.signal();
+		this.loaded = ui.signal();
+		this.ended = ui.signal();
+		this.timeChanged = ui.signal();
+		this.lengthChanged = ui.signal();
 
-		audio.data = element.dataset;
-		audio.src = element.dataset.file;
+		this.requestedSeek = null;
+	}
 
-		return audio;
+
+	MusicTrack.prototype = {
+		load: function() {
+			if (this.audio.src === "") {
+				this.audio.src = this.data.file;
+			}
+
+			this.audio.preload = "auto";
+		},
+
+		stopLoading: function() {
+			this.audio.src = "";
+			this.audio.preload = "none";
+		},
+
+		play: function() {
+			if (this.requestedSeek !== null) {
+				this.audio.currentTime = this.requestedSeek;
+				this.requestedSeek = null;
+			}
+
+			this.audio.play();
+		},
+
+		pause: function() {
+			this.audio.pause();
+		},
+
+		seek: function(time) {
+			try {
+				this.audio.currentTime = time;
+			} catch(e) {
+				this.requestedSeek = time;
+			}
+		},
+
+		dispose: function() {
+			var audioEvents = this.events;
+			var audio = this.audio;
+
+			Object.keys(audioEvents).forEach(function(event) {
+				audio.removeEventListener(event, audioEvents[event]);
+			});
+
+			audio.pause();
+			audio.preload = "none";
+			audio.src = "";
+
+			this.playable.dispose();
+			this.loaded.dispose();
+			this.ended.dispose();
+			this.timeChanged.dispose();
+			this.lengthChanged.dispose();
+		},
+
+		getMetadata: function() {
+			return {
+				title: this.data.title,
+				subtitle: this.data.artist
+			};
+		},
+
+		getDisplay: function() {
+			var container = document.createElement("div");
+			container.style.backgroundSize = "contain";
+			container.style.backgroundRepeat = "no-repeat";
+			container.style.backgroundPosition = "center center";
+
+			function setImage(src) {
+				container.style.backgroundImage = "url(" + src + ")";
+			}
+
+			var img = new Image();
+
+			img.addEventListener("error", function() {
+				setImage("images/nocover.svg");
+			});
+
+			img.addEventListener("load", function() {
+				setImage(img.src);
+			});
+
+			img.src = "/rest/covers/album:" + this.data.artist + ":" + this.data.album;
+
+			return container;
+		}
 	};
+
+
+	return MusicTrack;
 });
