@@ -5,6 +5,42 @@ define(["ui"], function(ui) {
 	"use strict";
 
 
+	var lastCover;
+	var coverContainer;
+	function getTrackDisplay(cover) {
+		if (cover === lastCover) {
+			return coverContainer;
+		}
+
+		if (!coverContainer) {
+			coverContainer = document.createElement("div");
+			coverContainer.style.backgroundSize = "contain";
+			coverContainer.style.backgroundRepeat = "no-repeat";
+			coverContainer.style.backgroundPosition = "center center";
+			coverContainer.style.transition = "background .2s ease-in-out";
+		}
+
+		function setImage(src) {
+			coverContainer.style.backgroundImage = "url(" + src + ")";
+		}
+
+		var img = new Image();
+
+		img.addEventListener("error", function() {
+			setImage("images/nocover.svg");
+		});
+
+		img.addEventListener("load", function() {
+			setImage(img.src);
+		});
+
+		lastCover = img.src = cover;
+		return coverContainer;
+	}
+
+
+
+
 	function trackPlayable(track) {
 		track.playable.dispatch();
 	}
@@ -131,28 +167,7 @@ define(["ui"], function(ui) {
 		},
 
 		getDisplay: function() {
-			var container = document.createElement("div");
-			container.style.backgroundSize = "contain";
-			container.style.backgroundRepeat = "no-repeat";
-			container.style.backgroundPosition = "center center";
-
-			function setImage(src) {
-				container.style.backgroundImage = "url(" + src + ")";
-			}
-
-			var img = new Image();
-
-			img.addEventListener("error", function() {
-				setImage("images/nocover.svg");
-			});
-
-			img.addEventListener("load", function() {
-				setImage(img.src);
-			});
-
-			img.src = "/rest/covers/album:" + this.data.artist + ":" + this.data.album;
-
-			return container;
+			return getTrackDisplay("/rest/covers/album:" + this.data.artist + ":" + this.data.album);
 		}
 	};
 
