@@ -2,8 +2,8 @@
 /*global define, console */
 
 define(
-[ "ui", "router", "track", "albumlist", "playlists" ],
-function(ui, router, MusicTrack, albumlist, playlists) {
+[ "ui", "router", "track", "albumlist" ],
+function(ui, router, MusicTrack, albumlist) {
 	"use strict";
 
 
@@ -56,26 +56,6 @@ function(ui, router, MusicTrack, albumlist, playlists) {
 
 		if (track) {
 			track.classList.add("playing");
-		}
-	}
-
-
-	var currentPlaylist;
-	function refreshCurrentPlaylist(view) {
-		var playlist = view.$(".playlist[data-name='" + currentPlaylist + "']"),
-			playing = view.$(".playlist.playing"),
-			floating = view.$(".playlist[data-name='!floating']");
-
-		if (floating) {
-			floating.style.display = currentPlaylist === "!floating" ? "block" : "none";
-		}
-
-		if (playing) {
-			playing.classList.remove("playing");
-		}
-
-		if (playlist) {
-			playlist.classList.add("playing");
 		}
 	}
 		
@@ -138,7 +118,6 @@ function(ui, router, MusicTrack, albumlist, playlists) {
 					}
 
 					refreshCurrentTrack(view);
-					refreshCurrentPlaylist(view);
 
 					view.$(".loading").style.display = "none";
 					view.behave(behaviour);
@@ -173,7 +152,6 @@ function(ui, router, MusicTrack, albumlist, playlists) {
 
 	ui.started.add(function() {
 		setupResourceList(ui.view("albums"), albumlist);
-		setupResourceList(ui.view("playlists"), playlists);
 
 		router.on("!enqueue/:id", function(err, req, next) {
 			var track = activeView.$(".track[data-id='" + req.match.id + "']");
@@ -213,12 +191,6 @@ function(ui, router, MusicTrack, albumlist, playlists) {
 			albums: {
 				type: "main",
 				link: "albums"
-			},
-
-			playlists: {
-				type: "main",
-				link: "playlists",
-				icon: "playlist"
 			}
 		}
 	};

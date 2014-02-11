@@ -15,7 +15,7 @@ define([
 		$P = dom.$P;
 
 
-	function dataUpdater(data, tracks) {
+	function dataUpdater(data, albums) {
 		if (!data) {
 			data = { artnames: [], artists: [] };
 		}
@@ -23,44 +23,21 @@ define([
 		var artists = data.artists,
 			artnames = data.artnames;
 
-		tracks.forEach(function(track) {
-			var artist = track.artist,
+		albums.forEach(function(album) {
+			var artist = album.artist,
 				artidx = artnames.indexOf(artist),
-				art, albums, albnames;
+				art;
 
 			if (artidx === -1) {
-				albums = [];
-				albnames = [];
-
+				albums = [album];
 				artnames.push(artist);
 				artists.push({
 					name: artist,
-					albnames: albnames,
 					albums: albums
 				});
 			} else {
 				art = artists[artidx];
-				albnames = art.albnames;
-				albums = art.albums;
-			}
-
-			var album = track.album,
-				albidx = albnames.indexOf(album);
-
-			if (albidx === -1) {
-				albnames.push(album);
-				albums.push({
-					_id: artist.replace(/:/g, "::") + ":" + album.replace(/:/g, "::"),
-					artist: artist,
-					title: album,
-					year: track.year,
-					hasCover: false,
-					trackIds: [track._id],
-					tracks: [track]
-				});
-			} else {
-				albums[albidx].trackIds.push(track._id);
-				albums[albidx].tracks.push(track);
+				art.albums.push(album);
 			}
 		});
 
@@ -232,7 +209,7 @@ define([
 
 
 	return {
-		resource: resources.tracks,
+		resource: resources.albums,
 		dataUpdater: dataUpdater,
 		template: template,
 		behaviour: behaviour,
