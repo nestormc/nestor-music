@@ -117,7 +117,7 @@ define(["when", "ui", "resources", "ist!templates/dataset"], function(when, ui, 
 			datasetDeferred.resolve(dataset);
 		} else {
 			resources.tracks.get(id).then(function(track) {
-				var element = dsTemplate.render(track);
+				var element = dsTemplate.render(track).firstChild;
 				datasetDeferred.resolve(element.dataset);
 			});
 		}
