@@ -2,8 +2,8 @@
 /*global define, console */
 
 define(
-[ "ui", "router", "track", "albumlist" ],
-function(ui, router, MusicTrack, albumlist) {
+[ "ui", "router", "track", "albumlist", "contentlist" ],
+function(ui, router, MusicTrack, albumlist, setupContentList) {
 	"use strict";
 
 
@@ -58,86 +58,6 @@ function(ui, router, MusicTrack, albumlist) {
 			track.classList.add("playing");
 		}
 	}
-		
-
-	var activeView;
-	function setupResourceList(view, listdef) {
-		var resource = listdef.resource;
-		var updater = listdef.dataUpdater;
-		var template = listdef.template;
-		var behaviour = listdef.behaviour;
-		var routes = listdef.routes;
-
-		if (routes) {
-			Object.keys(routes).forEach(function(route) {
-				router.on(route, routes[route].bind(null, view));
-			});
-		}
-
-		var loaded = false;
-		var promise;
-		var data;
-		var rendered;
-
-		view.displayed.add(function() {
-			activeView = view;
-
-			if (!promise) {
-				loaded = false;
-				promise = resource.list();
-
-				data = updater(data, []);
-
-				// Render template
-				try {
-					rendered = template.render(data);
-				} catch(e) {
-					console.log("RENDER: " + e.stack);
-				}
-
-				view.appendChild(rendered);
-
-				// Add scroll handler to load more
-				view.scrolledToEnd.add(function() {
-					if (!loaded) {
-						view.$(".loading").style.display = "block";
-						promise.fetchMore();
-					}
-				});
-
-				promise
-				.whenData(function(items) {
-					// Call data updater
-					data = updater(data, items);
-
-					// Update template
-					try {
-						rendered.update(data);
-					} catch(e) {
-						console.log("UPDATE: " + e.stack);
-					}
-
-					refreshCurrentTrack(view);
-
-					view.$(".loading").style.display = "none";
-					view.behave(behaviour);
-				})
-				.then(function() {
-					// Nothing more to load
-					loaded = true;
-				})
-				.otherwise(function(err) {
-					console.log(err);
-				});
-
-				ui.stopping.add(function() {
-					// Cancel loading when UI stops
-					promise.cancel();
-				});
-			}
-
-		});
-	}
 
 
 	ui.player.register("music", function(id) {
@@ -151,10 +71,15 @@ function(ui, router, MusicTrack, albumlist) {
 
 
 	ui.started.add(function() {
-		setupResourceList(ui.view("albums"), albumlist);
+		var albumView = ui.view("albums");
+		setupContentList(albumView, albumlist);
+
+		albumView.loading.add(function(loading) {
+			albumView.$(".loading").style.display = loading ? "block" : "none";
+		});
 
 		router.on("!enqueue/:id", function(err, req, next) {
-			var track = activeView.$(".track[data-id='" + req.match.id + "']");
+			var track = setupContentList.activeView.$(".track[data-id='" + req.match.id + "']");
 
 			ui.player.enqueue({
 				provider: "music",
@@ -166,7 +91,7 @@ function(ui, router, MusicTrack, albumlist) {
 		});
 
 		router.on("!add/:id", function(err, req, next) {
-			var track = activeView.$(".track[data-id='" + req.match.id + "']");
+			var track = setupContentList.activeView.$(".track[data-id='" + req.match.id + "']");
 
 			ui.player.enqueue({
 				provider: "music",

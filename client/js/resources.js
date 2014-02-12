@@ -1,7 +1,7 @@
 /*jshint browser:true */
 /*global define */
 
-define(["when", "rest"], function(when, rest) {
+define(["rest"], function(rest) {
 	"use strict";
 	
 	return {

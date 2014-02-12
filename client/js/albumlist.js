@@ -2,12 +2,12 @@
 /*global define */
 
 define([
-	"ui", "dom", "router", "when", "plugins",
+	"ist", "ui", "dom", "router", "when", "plugins",
 
 	"resources", "util", "track",
 
 	"ist!templates/albumlist"
-], function(ui, dom, router, when, plugins, resources, util, MusicTrack, template) {
+], function(ist, ui, dom, router, when, plugins, resources, util, MusicTrack, template) {
 	"use strict";
 
 	var $ = dom.$,
@@ -15,33 +15,26 @@ define([
 		$P = dom.$P;
 
 
-	function dataUpdater(data, albums) {
-		if (!data) {
-			data = { artnames: [], artists: [] };
-		}
 
-		var artists = data.artists,
-			artnames = data.artnames;
+	// Group albums by artist
+	function dataModifier(albums) {
+		var artists = [];
+		var artnames = [];
 
 		albums.forEach(function(album) {
-			var artist = album.artist,
-				artidx = artnames.indexOf(artist),
-				art;
+			var artist = album.artist;
+			var artidx = artnames.indexOf(artist);
 
 			if (artidx === -1) {
-				albums = [album];
 				artnames.push(artist);
-				artists.push({
-					name: artist,
-					albums: albums
-				});
-			} else {
-				art = artists[artidx];
-				art.albums.push(album);
+				artists.push({ name: artist, albums: [] });
+				artidx = artists.length - 1;
 			}
+
+			artists[artidx].albums.push(album);
 		});
 
-		return data;
+		return { artists: artists };
 	}
 
 
@@ -210,9 +203,30 @@ define([
 
 	return {
 		resource: resources.albums,
-		dataUpdater: dataUpdater,
-		template: template,
+		dataModifier: dataModifier,
 		behaviour: behaviour,
+
+		root: {
+			template: template,
+			selector: ".albumlist",
+			nextArray: "artists",
+			nextConfig: "artist"
+		},
+
+		artist: {
+			template: ist("@use 'music-albums-artist'"),
+			key: "name",
+			selector: ".artist[data-name='%s']",
+			nextArray: "albums",
+			nextConfig: "album"
+		},
+
+		album: {
+			template: ist("@use 'music-albums-album'"),
+			key: "_id",
+			selector: ".album[data-id='%s']"
+		},
+
 
 		routes: {
 			"!shareAlbum/:id/:artist/:title": function(view, err, req, next) {
