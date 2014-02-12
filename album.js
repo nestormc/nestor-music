@@ -17,22 +17,34 @@ function getTrackFile(req, cb) {
 
 
 function getAlbumModel(mongoose, rest, logger, intents) {
+	var TrackSchema = new mongoose.Schema({
+		path: String,
+		mime: String,
+
+		number: Number,
+		title: String,
+
+		bitrate: Number,
+		length: Number,
+		format: String
+	});
+
+
+	TrackSchema.virtual("artist").get(function() {
+		return this.parent().artist;
+	});
+
+	TrackSchema.virtual("album").get(function() {
+		return this.parent().title;
+	});
+
+
 	var AlbumSchema = new mongoose.Schema({
 		artist: String,
 		title: String,
 		year: String,
 
-		tracks: [{
-			path: String,
-			mime: String,
-
-			number: Number,
-			title: String,
-
-			bitrate: Number,
-			length: Number,
-			format: String
-		}]
+		tracks: [TrackSchema]
 	});
 
 	AlbumSchema.index({ artist: 1, title: 1 }, { unique: true });
@@ -193,6 +205,8 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			album: 1
 		})
 		.set("toObject", {
+			virtuals: true,
+
 			transform: function(doc, ret, options) {
 				delete ret.__v;
 

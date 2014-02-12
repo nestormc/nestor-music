@@ -61,7 +61,7 @@ function(ui, router, MusicTrack, albumlist, setupContentList) {
 
 
 	ui.player.register("music", function(id) {
-		console.error("music track provider not implemented !");
+		return new MusicTrack(null, id);
 	});
 
 
@@ -84,7 +84,7 @@ function(ui, router, MusicTrack, albumlist, setupContentList) {
 			ui.player.enqueue({
 				provider: "music",
 				id: req.match.id,
-				track: new MusicTrack(track)
+				track: new MusicTrack(track.dataset)
 			}, true);
 
 			next();
@@ -96,7 +96,7 @@ function(ui, router, MusicTrack, albumlist, setupContentList) {
 			ui.player.enqueue({
 				provider: "music",
 				id: req.match.id,
-				track: new MusicTrack(track)
+				track: new MusicTrack(track.dataset)
 			});
 
 			next();

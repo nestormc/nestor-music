@@ -189,7 +189,7 @@ define([
 					return {
 						provider: "music",
 						id: track.dataset.id,
-						track: new MusicTrack(track)
+						track: new MusicTrack(track.dataset)
 					};
 				}));
 

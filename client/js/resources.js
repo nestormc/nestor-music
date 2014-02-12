@@ -28,8 +28,8 @@ define(["rest"], function(rest) {
 		},
 
 		tracks: {
-			list: function() {
-				return rest.incremental("tracks", 50);
+			get: function(id) {
+				return rest.get("tracks/" + id);
 			}
 		}
 	};
