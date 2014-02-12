@@ -189,16 +189,21 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 	rest.mongoose("albums", Album)
 		.set("sort", {
 			artist: 1,
+			year: 1,
 			album: 1
-		});
-		/*.set("toObject", {
-			virtuals: true,
-
+		})
+		.set("toObject", {
 			transform: function(doc, ret, options) {
 				delete ret.__v;
-				delete ret.id;
+
+				if (ret.tracks) {
+					ret.tracks.sort(function(a, b) {
+						return a.number - b.number;
+					});
+				}
 			}
-		});*/
+		});
+	
 
 	rest.aggregate("tracks", Album, [
 		{ $project: {
