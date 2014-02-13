@@ -230,7 +230,7 @@ define([
 
 		routes: {
 			"!shareAlbum/:id/:artist/:title": function(view, err, req, next) {
-				plugins.share("music", "album:" + req.match.id, "Album " + req.match.artist + " - " + req.match.title);
+				plugins.share("music", "album:" + req.match.id, "Album " + req.match.title + " by " + req.match.artist);
 				next();
 			},
 
