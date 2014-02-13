@@ -60,11 +60,6 @@ function(ui, router, MusicTrack, albumlist, setupContentList) {
 	}
 
 
-	ui.player.register("music", function(id) {
-		return new MusicTrack(null, id);
-	});
-
-
 	/*!
 	 * Fill views and setup routes when UI starts
 	 */
@@ -73,6 +68,10 @@ function(ui, router, MusicTrack, albumlist, setupContentList) {
 	ui.started.add(function() {
 		var albumView = ui.view("albums");
 		setupContentList(albumView, albumlist);
+
+		ui.player.register("music", function(id) {
+			return new MusicTrack(null, id);
+		});
 
 		albumView.loading.add(function(loading) {
 			albumView.$(".loading").style.display = loading ? "block" : "none";
