@@ -1,5 +1,5 @@
 @define "music-albums-track"
-	li.track[data-id={{ _id }}][data-file=/rest/tracks/{{ _id }}/file][data-artist={{ artist }}][data-album={{ album }}][data-title={{ title }}]
+	li.track[data-id={{ _id }}][data-file=/rest/tracks/{{ _id }}/file][data-artist={{ artist }}][data-album={{ album }}][data-title={{ title }}][data-length={{ length }}]
 		span.play-indicator
 			@svg "images/playing.svg"
 		span.number.editable "{{ number }}"
@@ -60,7 +60,7 @@
 
 @define "music-albums-artist"
 	.artist[data-name={{ name }}]
-		.artist-header "{{ name || 'Unknown artist' }}"
+		.artist-header.content-header "{{ name || 'Unknown artist' }}"
 		@each albums
 			@use "music-albums-album"
 

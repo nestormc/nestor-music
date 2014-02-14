@@ -7,19 +7,6 @@ function(ui, router, MusicTrack, albumlist, setupContentList) {
 	"use strict";
 
 
-	// TODO un-global this
-	window.humanTime = function(duration) {
-		var hours = Math.floor(duration / 3600),
-			minutes = Math.floor(duration % 3600 / 60),
-			seconds = Math.floor(duration) % 60;
-		
-		return hours === 0 ? minutes + ":" + (seconds > 9 ? seconds : "0" + seconds)
-						   : hours + "h" + (minutes > 9 ? minutes : "0" + minutes) + "m" + (seconds > 9 ? seconds : "0" + seconds) + "s";
-	};
-
-
-
-
 	/*!
 	 * Player state change handlers
 	 */

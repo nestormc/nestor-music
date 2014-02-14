@@ -106,7 +106,8 @@ define(["when", "ui", "resources", "ist!templates/dataset"], function(when, ui, 
 		this.data.then(function(d) {
 			metadataDeferred.resolve({
 				title: d.title,
-				subtitle: d.artist
+				subtitle: d.artist,
+				length: d.length
 			});
 
 			var coverUrl = "/rest/covers/album:" + d.artist + ":" + d.album;
