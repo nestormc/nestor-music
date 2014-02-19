@@ -122,7 +122,14 @@ musicPlugin.manifest = {
 	description: "Music library",
 	dependencies: ["nestor-media"],
 	recommends: ["nestor-coverart", "nestor-share"],
-	clientDir: __dirname + "/client"
+
+	client: {
+		public: __dirname + "/client/public",
+
+		build: {
+			base: __dirname + "/client"
+		}
+	}
 };
 
 module.exports = musicPlugin;
