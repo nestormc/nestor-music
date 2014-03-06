@@ -2,30 +2,9 @@
 /*global define, console */
 
 define(
-[ "ui", "router", "track", "albumlist", "contentlist" ],
-function(ui, router, MusicTrack, albumlist, setupContentList) {
+[ "ui", "router", "track", "albumlist" ],
+function(ui, router, MusicTrack, albumlist) {
 	"use strict";
-
-
-	/*!
-	 * Player state change handlers
-	 */
-
-
-/*
-	var currentTrackId;
-	player.currentTrackChanged.add(function(trackId) {
-		currentTrackId = trackId;
-		if (activeView) refreshCurrentTrack(activeView);
-	});
-
-	var currentPlaylist;
-	player.currentPlaylistChanged.add(function(playlist) {
-		currentPlaylist = playlist;
-		if (activeView) refreshCurrentPlaylist(activeView);
-	});
-*/
-
 
 	/*!
 	 * Resource list helpers
@@ -54,7 +33,7 @@ function(ui, router, MusicTrack, albumlist, setupContentList) {
 
 	ui.started.add(function() {
 		var albumView = ui.view("albums");
-		setupContentList(albumView, albumlist);
+		ui.helpers.setupContentList(albumView, albumlist);
 
 		ui.player.register("music", function(id) {
 			return new MusicTrack(null, id);
@@ -65,6 +44,7 @@ function(ui, router, MusicTrack, albumlist, setupContentList) {
 		});
 
 		router.on("!enqueue/:id", function(err, req, next) {
+			return next("TODO: remove activeView");
 			var track = setupContentList.activeView.$(".track[data-id='" + req.match.id + "']");
 
 			ui.player.enqueue({
@@ -77,6 +57,7 @@ function(ui, router, MusicTrack, albumlist, setupContentList) {
 		});
 
 		router.on("!add/:id", function(err, req, next) {
+			return next("TODO: remove activeView");
 			var track = setupContentList.activeView.$(".track[data-id='" + req.match.id + "']");
 
 			ui.player.enqueue({
