@@ -38,6 +38,7 @@ define([
 	}
 
 
+
 	var behaviour = {
 		".cover > img": {
 			"error": function() {
@@ -116,87 +117,6 @@ define([
 
 				return false;
 			}
-		},
-
-		"li.track": {
-			/* Prevent text selection when shift-clicking tracks */
-			"mousedown": function(e) {
-				if (e.shiftKey || e.ctrlKey || e.target.contentEditable !== "true") {
-					e.preventDefault();
-				}
-				return false;
-			},
-
-			/* Handle track selection with click, ctrl+click, shift+click */
-			"click": (function() {
-				var firstClicked;
-
-				return function(e) {
-					var view = $P(this, ".main-view");
-
-					e.preventDefault();
-					e.stopPropagation();
-
-					if (!e.ctrlKey) {
-						view.$$(".selected").forEach(function(sel) {
-							sel.classList.remove("selected");
-						});
-					}
-
-					if (e.shiftKey && firstClicked) {
-						var tracks = view.$$("li.track"),
-							idx1 = tracks.indexOf(firstClicked),
-							idx2 = tracks.indexOf(this);
-
-						tracks.slice(Math.min(idx1, idx2), Math.max(idx1, idx2) + 1).forEach(function(track) {
-							track.classList.add("selected");
-						});
-
-						return false;
-					}
-
-					if (e.ctrlKey) {
-						this.classList.add("selected");
-						firstClicked = this;
-						return false;
-					}
-
-					this.classList.add("selected");
-					firstClicked = this;
-
-					return false;
-				};
-			}()),
-
-			"dblclick": function(e) {
-				var view = $P(this, ".main-view");
-
-				e.preventDefault();
-
-				var tracks = view.$$(".selected"),
-					index = tracks.indexOf(this);
-
-				if (tracks.length === 1) {
-					// Put whole album in playlist
-					var selectedTrack = tracks[0];
-
-					tracks = $$(selectedTrack.parentNode, ".track");
-					index = tracks.indexOf(selectedTrack);
-				}
-
-				ui.player.clear();
-				ui.player.enqueue(tracks.map(function(track) {
-					return {
-						provider: "music",
-						id: track.dataset.id,
-						track: new MusicTrack(track.dataset)
-					};
-				}));
-
-				ui.player.play(index);
-
-				return false;
-			}
 		}
 	};
 
@@ -205,6 +125,23 @@ define([
 		resource: resources.albums,
 		dataModifier: dataModifier,
 		behaviour: behaviour,
+
+		listSelection: {
+			itemSelector: "li.track",
+			listSelector: ".album",
+			onItemDblClick: function(selectedItems, index) {
+				ui.player.clear();
+				ui.player.enqueue(selectedItems.map(function(track) {
+					return {
+						provider: "music",
+						id: track.dataset.id,
+						track: new MusicTrack(track.dataset)
+					};
+				}));
+
+				ui.player.play(index);
+			}
+		},
 
 		root: {
 			template: template,

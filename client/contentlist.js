@@ -11,6 +11,22 @@ define(["router", "ui", "dom"], function(router, ui, dom) {
 		var routes = config.routes || {};
 		var root = config.root;
 
+		if (config.listSelection) {
+			var selectBehaviour = ui.helpers.listSelectionBehaviour(
+				view,
+				config.listSelection.itemSelector,
+				config.listSelection.listSelector,
+				config.listSelection.onItemDblClick
+			);
+
+			Object.keys(selectBehaviour).forEach(function(selector) {
+				behaviour[selector] = behaviour[selector] || {};
+
+				Object.keys(selectBehaviour[selector]).forEach(function(event) {
+					behaviour[selector][event] = selectBehaviour[selector][event];
+				});
+			});
+		}
 
 		// Setup routes
 		Object.keys(routes).forEach(function(route) {
