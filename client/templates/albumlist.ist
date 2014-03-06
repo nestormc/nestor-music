@@ -5,9 +5,9 @@
 		span.number.editable "{{ number }}"
 		span.title.editable "{{ title || 'Unknown title' }}"
 		span.controls
-			a.active-icon[title=Play next][href=#!music/enqueue/{{ _id }}]
+			a.active-icon[title=Play next][href=#!music/enqueue/track/{{ _id }}]
 				@svg "images/playlist-enqueue.svg"
-			a.active-icon[title=Add to playlist][href=#!music/add/{{ _id }}]
+			a.active-icon[title=Add to playlist][href=#!music/add/track/{{ _id }}]
 				@svg "images/playlist-add.svg"
 			a.active-icon[title=Download track][href=/download/music/track:{{ _id }}]
 				@svg "images/download.svg"

@@ -121,7 +121,7 @@ define([
 	};
 
 
-	return {
+	var contentListConfig = {
 		resource: resources.albums,
 		dataModifier: dataModifier,
 		behaviour: behaviour,
@@ -166,6 +166,30 @@ define([
 
 
 		routes: {
+			"!enqueue/track/:id": function(view, err, req, next) {
+				var track = view.$(".track[data-id='" + req.match.id + "']");
+
+				ui.player.enqueue({
+					provider: "music",
+					id: req.match.id,
+					track: new MusicTrack(track.dataset)
+				}, true);
+
+				next();
+			},
+
+			"!add/track/:id": function(view, err, req, next) {
+				var track = view.$(".track[data-id='" + req.match.id + "']");
+
+				ui.player.enqueue({
+					provider: "music",
+					id: req.match.id,
+					track: new MusicTrack(track.dataset)
+				});
+
+				next();
+			},
+
 			"!shareAlbum/:id/:artist/:title": function(view, err, req, next) {
 				plugins.share("music", "album:" + req.match.id, "Album " + req.match.title + " by " + req.match.artist);
 				next();
@@ -257,4 +281,15 @@ define([
 			}
 		}
 	};
+
+
+
+	ui.started.add(function() {
+		var albumView = ui.view("albums");
+		ui.helpers.setupContentList(albumView, contentListConfig);
+
+		albumView.loading.add(function(loading) {
+			albumView.$(".loading").style.display = loading ? "block" : "none";
+		});
+	});
 });
