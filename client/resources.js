@@ -1,7 +1,7 @@
 /*jshint browser:true */
 /*global define */
 
-define(["rest"], function(rest) {
+define(["rest", "io"], function(rest, io) {
 	"use strict";
 	
 	return {
@@ -24,6 +24,10 @@ define(["rest"], function(rest) {
 		albums: {
 			list: function() {
 				return rest.incremental("albums", 5);
+			},
+
+			watch: function() {
+				return io.watch("albums");
 			}
 		},
 

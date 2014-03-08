@@ -16,25 +16,13 @@ define([
 
 
 
-	// Group albums by artist
-	function dataModifier(albums) {
-		var artists = [];
-		var artnames = [];
-
-		albums.forEach(function(album) {
-			var artist = album.artist;
-			var artidx = artnames.indexOf(artist);
-
-			if (artidx === -1) {
-				artnames.push(artist);
-				artists.push({ name: artist, albums: [] });
-				artidx = artists.length - 1;
-			}
-
-			artists[artidx].albums.push(album);
-		});
-
-		return { artists: artists };
+	// Extract artist from album
+	function dataMapper(album) {
+		return { artists: [{
+				name: album.artist,
+				albums: [album]
+			}]
+		};
 	}
 
 
@@ -123,7 +111,7 @@ define([
 
 	var contentListConfig = {
 		resource: resources.albums,
-		dataModifier: dataModifier,
+		dataMapper: dataMapper,
 		behaviour: behaviour,
 
 		listSelection: {
@@ -146,16 +134,18 @@ define([
 		root: {
 			template: template,
 			selector: ".albumlist",
-			nextArray: "artists",
-			nextConfig: "artist"
+			childrenArray: "artists",
+			childrenConfig: "artist",
+			childSelector: ".artist"
 		},
 
 		artist: {
 			template: ist("@use 'music-albums-artist'"),
 			key: "name",
 			selector: ".artist[data-name='%s']",
-			nextArray: "albums",
-			nextConfig: "album"
+			childrenArray: "albums",
+			childrenConfig: "album",
+			childSelector: ".album"
 		},
 
 		album: {
@@ -283,13 +273,8 @@ define([
 	};
 
 
-
 	ui.started.add(function() {
 		var albumView = ui.view("albums");
 		ui.helpers.setupContentList(albumView, contentListConfig);
-
-		albumView.loading.add(function(loading) {
-			albumView.$(".loading").style.display = loading ? "block" : "none";
-		});
 	});
 });

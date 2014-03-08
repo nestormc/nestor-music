@@ -179,8 +179,8 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 				})[0];
 
 				album.tracks.pull(track._id);
-
-				if (album.length) {
+				
+				if (album.tracks.length) {
 					album.save(function() {});
 				} else {
 					intents.emit("media:cover:remove", {
@@ -197,14 +197,13 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 
 	var Album = mongoose.model("albums", AlbumSchema);
 
-
-	rest.mongoose("albums", Album)
-		.set("sort", {
+	var albumSort = {
 			artist: 1,
 			year: 1,
 			album: 1
-		})
-		.set("toObject", {
+		};
+
+	var albumToObject = {
 			virtuals: true,
 
 			transform: function(doc, ret, options) {
@@ -216,7 +215,20 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 					});
 				}
 			}
+		};
+
+
+	rest.mongoose("albums", Album)
+		.set("sort", albumSort)
+		.set("toObject", albumToObject);
+
+
+	intents.on("nestor:startup", function() {
+		intents.emit("nestor:http:watchable", "albums", Album, {
+			sort: albumSort,
+			toObject: albumToObject
 		});
+	});
 	
 
 	rest.aggregate("tracks", Album, [
