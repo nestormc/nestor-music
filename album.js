@@ -183,21 +183,23 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 
 
 	AlbumSchema.statics.removeFile = function(path) {
-		logger.warn("removing track %s", path);
 		Album.findOneAndUpdate(
 			{ tracks: { $elemMatch: { path: path } } },
-			{ $pull: { tracks: { $elemMatch: { path: path } } } },
+			{ $pull: { tracks: { path: path } } },
 			function(err, album) {
 				if (err) {
 					logger.error("Error removing track %s from album: %s", path, err.message);
-				} else if (album && album.tracks.length === 0) {
-					// Remove album if empty
+				} else if (album && album.tracks.length === 0) {// Remove album if empty
+					logger.warn("removing album %s - %s", album.artist, album.title);
+
 					intents.emit("media:cover:remove", {
 						key: "album:" + album.artist + ":" + album.title
 					});
 
 					album.remove(function(err) {
-						logger.error("Error removing album %s - %s: %s", album.artist, album.title, err.message);
+						if (err) {
+							logger.error("Error removing album %s - %s: %s", album.artist, album.title, err.message);
+						}
 					});
 				}
 			}
