@@ -122,6 +122,9 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			if (err) {
 				cb(err);
 			} else {
+				// Manual save event because findOneAndUpdate does not trigger post hooks
+				intents.emit("nestor:watchable:save", "albums", album);
+
 				intents.emit(
 					"cover:album-art",
 					album.artist,
@@ -236,7 +239,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 
 
 	intents.on("nestor:startup", function() {
-		intents.emit("nestor:http:watchable", "albums", Album, {
+		intents.emit("nestor:watchable", "albums", Album, {
 			sort: albumSort,
 			toObject: albumToObject
 		});
