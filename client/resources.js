@@ -33,7 +33,7 @@ define(["rest", "io"], function(rest, io) {
 
 		tracks: {
 			get: function(id) {
-				return rest.get("tracks/" + id);
+				return rest.get("tracks/%s", id);
 			}
 		}
 	};
