@@ -88,12 +88,12 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 	});
 
 
-	AlbumSchema.statics.getTrack = function(id, cb) {
-		Album.findOne({ tracks: { $elemMatch: { _id: id } } }, function(err, album) {
+	AlbumSchema.statics.getTrack = function(path, cb) {
+		Album.findOne({ tracks: { $elemMatch: { path: path } } }, function(err, album) {
 			if (err) {
 				cb(err);
 			} else {
-				cb(null, album.tracks.id(id));
+				cb(null, album.tracks.filter(function(t) { return t.path === path; })[0]);
 			}
 		});
 	};
@@ -136,7 +136,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 		Album.findOneAndUpdate(
 			{
 				artist: albumData.artist,
-				title: albumData.artist,
+				title: albumData.title,
 				tracks: { $not: { $elemMatch: { path: filepath } } }
 			},
 			{
@@ -257,7 +257,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			"tracks.number": 1
 		} },
 		{ $project: {
-			_id: "$tracks._id",
+			_id: "$tracks.path",
 			albumId: 1,
 			artist: 1,
 			album: 1,

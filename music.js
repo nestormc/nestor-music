@@ -76,9 +76,9 @@ function musicPlugin(nestor) {
 				type = parts.shift();
 
 			if (type === "track") {
-				var trackId = parts.shift();
+				var path = parts.shift();
 
-				Album.getTrack(trackId, function(err, track) {
+				Album.getTrack(path, function(err, track) {
 					if (err || !track) {
 						callback(new Error("Unknown track " + trackId));
 					} else {
