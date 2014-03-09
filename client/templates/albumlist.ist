@@ -25,7 +25,7 @@
 	  [data-id={{ _id }}] \
 	  [data-artist={{ artist }}] \
 	  [data-title={{ title }}]
-		.edit-controls
+		.edit-controls.content-box-actions
 			@if-right "music:edit-tags"
 				a.action-with-icon.edit \
 				  [title=Edit metadata] \
@@ -57,7 +57,7 @@
 				@svg "images/share.svg"
 				"Share"
 
-		.info
+		.info.content-box-header
 			.cover
 				img.current[src=/rest/covers/album:{{ artist }}:{{ title }}]
 				.dropzone
