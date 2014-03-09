@@ -197,9 +197,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 						// Remove album if empty
 						logger.warn("removing album %s - %s", album.artist, album.title);
 
-						intents.emit("media:cover:remove", {
-							key: "album:" + album.artist + ":" + album.title
-						});
+						intents.emit("cover:album-art:remove", album.artist, album.title);
 
 						album.remove(function(err) {
 							if (err) {
