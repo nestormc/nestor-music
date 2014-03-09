@@ -100,6 +100,12 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 
 
 	AlbumSchema.statics.fromFile = function(filepath, mimetype, ffdata, tags, cb) {
+		var albumData = {
+			artist: tags.artist || "",
+			title: tags.album || "",
+			year: tags.year || -1,
+		};
+
 		var trackData = {
 			path: filepath,
 			mime: mimetype,
@@ -112,52 +118,10 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			length: ffdata.format.duration
 		};
 
-		var albumData = {
-			artist: tags.artist || "",
-			title: tags.album || "",
-			year: tags.year || -1,
-
-			tracks: [trackData]
-		};
-
-		Album.findOne({ artist: albumData.artist, title: albumData.title }, function(err, album) {
+		function updateCallback(err, album) {
 			if (err) {
-				return cb(err);
-			}
-
-			if (!album) {
-				album = new Album(albumData);
+				cb(err);
 			} else {
-				// Look for track in album
-				var track = album.tracks.filter(function(t) {
-					return t.path === filepath;
-				})[0];
-
-				if (track) {
-					// Update
-					Object.keys(trackData).forEach(function(key) {
-						track[key] = trackData[key];
-					});
-				} else {
-					// Add new track
-					album.tracks.push(trackData);
-				}
-			}
-
-			album.save(function(err) {
-				if (err) {
-					if (err.name === "MongoError" && err.code === 11000) {
-						// Duplicate unique key: the same album was created in the meantime,
-						// just call fromFile again, which will find and update the album 
-
-						Album.fromFile(filepath, mimetype, ffdata, tags, cb);
-						return;
-					}
-
-					cb(err);
-					return;
-				}
-
 				intents.emit(
 					"cover:album-art",
 					album.artist,
@@ -166,32 +130,78 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 				);
 
 				cb(null, album);
-			});
-		});
+			}
+		}
+
+		Album.findOneAndUpdate(
+			{
+				artist: albumData.artist,
+				title: albumData.artist,
+				tracks: { $not: { $elemMatch: { path: filepath } } }
+			},
+			{
+				$setOnInsert: {
+					artist: albumData.artist,
+					title: albumData.title,
+					year: albumData.year,
+					tracks: []
+				}
+			},
+			{ upsert : true },
+			function(err, album) {
+				if (err) {
+					if (err.name === "MongoError" && err.lastErrorObject.code === 11000) {
+						// Album without this track was not found but duplicate key
+						// indicates the album exists with this track, update it
+						Album.findOneAndUpdate(
+							{
+								artist: albumData.artist,
+								title: albumData.title,
+								tracks: { $elemMatch: { path: filepath } }
+							},
+							{
+								$set: { "tracks.$": trackData }
+							},
+							updateCallback
+						);
+					} else {
+						return cb(err);
+					}
+				} else if (!album) {
+					return cb(new Error("No album after findOneAndUpdate !"));
+				} else {
+					// Album was either found without this track or created with no track
+					Album.findOneAndUpdate(
+						{ artist: albumData.artist, title: albumData.title },
+						{ $push: { tracks: trackData } },
+						updateCallback
+					);
+				}
+			}
+		);
 	};
 
 
 	AlbumSchema.statics.removeFile = function(path) {
-		Album.findOne({ tracks: { $elemMatch: { path: path } } }, function(err, album) {
-			if (album) {
-				var track = album.tracks.filter(function(t) {
-					return t.path === path;
-				})[0];
-
-				album.tracks.pull(track._id);
-				
-				if (album.tracks.length) {
-					album.save(function() {});
-				} else {
+		logger.warn("removing track %s", path);
+		Album.findOneAndUpdate(
+			{ tracks: { $elemMatch: { path: path } } },
+			{ $pull: { tracks: { $elemMatch: { path: path } } } },
+			function(err, album) {
+				if (err) {
+					logger.error("Error removing track %s from album: %s", path, err.message);
+				} else if (album && album.tracks.length === 0) {
+					// Remove album if empty
 					intents.emit("media:cover:remove", {
 						key: "album:" + album.artist + ":" + album.title
 					});
 
-					album.remove(function() {});
+					album.remove(function(err) {
+						logger.error("Error removing album %s - %s: %s", album.artist, album.title, err.message);
+					});
 				}
-
 			}
-		});
+		);
 	};
 
 
