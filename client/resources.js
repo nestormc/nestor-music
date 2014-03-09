@@ -32,8 +32,8 @@ define(["rest", "io"], function(rest, io) {
 		},
 
 		tracks: {
-			get: function(id) {
-				return rest.get("tracks/%s", id);
+			get: function(path) {
+				return rest.get("tracks/%s", path);
 			}
 		}
 	};

@@ -1,40 +1,59 @@
 @define "music-albums-track"
-	li.track[data-id={{ _id }}][data-file=/rest/tracks/{{ _id }}/file][data-artist={{ artist }}][data-album={{ album }}][data-title={{ title }}][data-length={{ length }}]
+	li.track \
+	  [data-path={{ path }}] \
+	  [data-file=/rest/tracks/{{ encodeURIComponent(path) }}/file] \
+	  [data-artist={{ artist }}] \
+	  [data-album={{ album }}] \
+	  [data-title={{ title }}] \
+	  [data-length={{ length }}]
 		span.play-indicator
 			@svg "images/playing.svg"
 		span.number.editable "{{ number }}"
 		span.title.editable "{{ title || 'Unknown title' }}"
 		span.controls
-			a.active-icon[title=Play next][href=#!music/enqueue/track/{{ _id }}]
+			a.active-icon[title=Play next][href=#!music/enqueue/track/{{ encodeURIComponent(path) }}]
 				@svg "images/playlist-enqueue.svg"
-			a.active-icon[title=Add to playlist][href=#!music/add/track/{{ _id }}]
+			a.active-icon[title=Add to playlist][href=#!music/add/track/{{ encodeURIComponent(path) }}]
 				@svg "images/playlist-add.svg"
-			a.active-icon[title=Download track][href=/download/music/track:{{ _id }}]
+			a.active-icon[title=Download track][href=/download/music/track:{{ encodeURIComponent(path) }}]
 				@svg "images/download.svg"
 		span.length "{{ humanTime(length) }}"
 
 
 @define "music-albums-album"
-	.album.content-box[data-id={{ _id }}][data-artist={{ artist }}][data-title={{ title }}]
+	.album.content-box \
+	  [data-id={{ _id }}] \
+	  [data-artist={{ artist }}] \
+	  [data-title={{ title }}]
 		.edit-controls
 			@if-right "music:edit-tags"
-				a.action-with-icon.edit[title=Edit metadata][href=#!music/editAlbum/{{ _id }}]
+				a.action-with-icon.edit \
+				  [title=Edit metadata] \
+				  [href=#!music/editAlbum/{{ _id }}]
 					@svg "images/edit.svg"
 					"Edit"
 
-				a.action-with-icon.save[title=Save changes][href=#!music/commitAlbumEdit/{{ _id }}]
+				a.action-with-icon.save \
+				  [title=Save changes] \
+				  [href=#!music/commitAlbumEdit/{{ _id }}]
 					@svg "images/commit.svg"
 					"Save"
 
-				a.action-with-icon.cancel[title=Cancel changes][href=#!music/cancelAlbumEdit/{{ _id }}]
+				a.action-with-icon.cancel \
+				  [title=Cancel changes] \
+				  [href=#!music/cancelAlbumEdit/{{ _id }}]
 					@svg "images/cancel.svg"
 					"Cancel"
 
-			a.action-with-icon.download[title=Download album][href=/download/music/album:{{ _id }}]
+			a.action-with-icon.download \
+			  [title=Download album] \
+			  [href=/download/music/album:{{ _id }}]
 				@svg "images/download.svg"
 				"Download"
 
-			a.action-with-icon.share[title=Share album][href=#!music/shareAlbum/{{ _id }}/{{ artist }}/{{ title }}]
+			a.action-with-icon.share \
+			  [title=Share album] \
+			  [href=#!music/shareAlbum/{{ _id }}/{{ artist }}/{{ title }}]
 				@svg "images/share.svg"
 				"Share"
 

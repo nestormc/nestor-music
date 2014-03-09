@@ -1,5 +1,5 @@
 /*jshint browser:true */
-/*global define, console */
+/*global define */
 
 define(
 [ "ui", "router", "track", "albumlist" ],
@@ -8,8 +8,8 @@ function(ui, router, MusicTrack) {
 
 
 	ui.started.add(function() {
-		ui.player.register("music", function(id) {
-			return new MusicTrack(null, id);
+		ui.player.register("music", function(path) {
+			return new MusicTrack(null, path);
 		});
 	});
 

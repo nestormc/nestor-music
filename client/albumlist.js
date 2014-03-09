@@ -122,7 +122,7 @@ define([
 				ui.player.enqueue(selectedItems.map(function(track) {
 					return {
 						provider: "music",
-						id: track.dataset.id,
+						id: track.dataset.path,
 						track: new MusicTrack(track.dataset)
 					};
 				}));
@@ -156,24 +156,24 @@ define([
 
 
 		routes: {
-			"!enqueue/track/:id": function(view, err, req, next) {
-				var track = view.$(".track[data-id='" + req.match.id + "']");
+			"!enqueue/track/:path": function(view, err, req, next) {
+				var track = view.$(".track[data-path='" + req.match.path + "']");
 
 				ui.player.enqueue({
 					provider: "music",
-					id: req.match.id,
+					id: req.match.path,
 					track: new MusicTrack(track.dataset)
 				}, true);
 
 				next();
 			},
 
-			"!add/track/:id": function(view, err, req, next) {
-				var track = view.$(".track[data-id='" + req.match.id + "']");
+			"!add/track/:path": function(view, err, req, next) {
+				var track = view.$(".track[data-path='" + req.match.path + "']");
 
 				ui.player.enqueue({
 					provider: "music",
-					id: req.match.id,
+					id: req.match.path,
 					track: new MusicTrack(track.dataset)
 				});
 
@@ -214,7 +214,7 @@ define([
 				album.classList.remove("editing");
 
 				var trackUpdates = {},
-					trackIds = $$(album, ".track").map(function(elem) { return elem.dataset.id; });
+					trackPaths = $$(album, ".track").map(function(elem) { return elem.dataset.path; });
 
 				/* Gather edited data in trackUpdates */
 				$$(album, ".editable").forEach(function(elem) {
@@ -224,21 +224,21 @@ define([
 						var targets, field;
 
 						if (elem.classList.contains("name")) {
-							targets = trackIds;
+							targets = trackPaths;
 							field = "artist";
 						}
 
 						if (elem.classList.contains("year")) {
-							targets = trackIds;
+							targets = trackPaths;
 							field = "year";
 						}
 
 						if (elem.classList.contains("title")) {
 							if (elem.parentNode.classList.contains("track")) {
-								targets = [elem.parentNode.dataset.id];
+								targets = [elem.parentNode.dataset.path];
 								field = "title";
 							} else {
-								targets = trackIds;
+								targets = trackPaths;
 								field = "album";
 							}
 						}

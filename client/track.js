@@ -72,7 +72,7 @@ define(["when", "ui", "resources", "ist!templates/dataset"], function(when, ui, 
 	}
 
 
-	function MusicTrack(dataset, id) {
+	function MusicTrack(dataset, path) {
 		var audio = new Audio();
 		this.audio = audio;
 
@@ -117,7 +117,7 @@ define(["when", "ui", "resources", "ist!templates/dataset"], function(when, ui, 
 		if (dataset) {
 			datasetDeferred.resolve(dataset);
 		} else {
-			resources.tracks.get(id).then(function(track) {
+			resources.tracks.get(path).then(function(track) {
 				var element = dsTemplate.render(track).firstChild;
 				datasetDeferred.resolve(element.dataset);
 			});
