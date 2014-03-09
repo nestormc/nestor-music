@@ -192,18 +192,24 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			function(err, album) {
 				if (err) {
 					logger.error("Error removing track %s from album: %s", path, err.message);
-				} else if (album && album.tracks.length === 0) {// Remove album if empty
-					logger.warn("removing album %s - %s", album.artist, album.title);
+				} else if (album) {
+					if (album.tracks.length === 0) {
+						// Remove album if empty
+						logger.warn("removing album %s - %s", album.artist, album.title);
 
-					intents.emit("media:cover:remove", {
-						key: "album:" + album.artist + ":" + album.title
-					});
+						intents.emit("media:cover:remove", {
+							key: "album:" + album.artist + ":" + album.title
+						});
 
-					album.remove(function(err) {
-						if (err) {
-							logger.error("Error removing album %s - %s: %s", album.artist, album.title, err.message);
-						}
-					});
+						album.remove(function(err) {
+							if (err) {
+								logger.error("Error removing album %s - %s: %s", album.artist, album.title, err.message);
+							}
+						});
+					} else {
+						// Force update
+						intents.emit("nestor:watchable:save", "albums", album);
+					}
 				}
 			}
 		);
