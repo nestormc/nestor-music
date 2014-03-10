@@ -1,7 +1,7 @@
 @define "music-albums-track"
 	li.track \
 	  [data-path={{ path }}] \
-	  [data-file=/rest/tracks/{{ encodeURIComponent(path) }}/file] \
+	  [data-file={{ uri("/rest/tracks/%s/file", path) }}] \
 	  [data-artist={{ artist }}] \
 	  [data-album={{ album }}] \
 	  [data-title={{ title }}] \
@@ -11,11 +11,11 @@
 		span.number.editable "{{ number }}"
 		span.title.editable "{{ title || 'Unknown title' }}"
 		span.controls
-			a.active-icon[title=Play next][href=#!music/enqueue/track/{{ encodeURIComponent(path) }}]
+			a.active-icon[title=Play next][href={{ uri("#!music/enqueue/track/%s", path) }}]
 				@svg "images/playlist-enqueue.svg"
-			a.active-icon[title=Add to playlist][href=#!music/add/track/{{ encodeURIComponent(path) }}]
+			a.active-icon[title=Add to playlist][href={{ uri("#!music/add/track/%s", path) }}]
 				@svg "images/playlist-add.svg"
-			a.active-icon[title=Download track][href=/download/music/track:{{ encodeURIComponent(path) }}]
+			a.active-icon[title=Download track][href={{ uri("/download/music/track:%s", path) }}]
 				@svg "images/download.svg"
 		span.length "{{ humanTime(length) }}"
 
