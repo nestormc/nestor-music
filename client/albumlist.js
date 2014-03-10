@@ -16,13 +16,24 @@ define([
 
 
 
-	// Extract artist from album
-	function dataMapper(album) {
-		return { artists: [{
-				name: album.artist,
-				albums: [album]
-			}]
-		};
+	// Group albums by artist
+	function dataMapper(albums) {
+		var data = { artists: [] };
+		var artIndexes = {};
+
+		albums.forEach(function(album) {
+			if (album.artist in artIndexes) {
+				data.artists[artIndexes[album.artist]].albums.push(album);
+			} else {
+				artIndexes[album.artist] = data.artists.length;
+				data.artists.push({
+					name: album.artist,
+					albums: [album]
+				});
+			}
+		});
+
+		return data;
 	}
 
 
