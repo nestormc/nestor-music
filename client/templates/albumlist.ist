@@ -29,37 +29,37 @@
 			@if-right "music:edit-tags"
 				a.action-with-icon.edit \
 				  [title=Edit metadata] \
-				  [href=#!music/editAlbum/{{ _id }}]
+				  [href={{ uri("#!music/editAlbum/%s", _id) }}]
 					@svg "images/edit.svg"
 					"Edit"
 
 				a.action-with-icon.save \
 				  [title=Save changes] \
-				  [href=#!music/commitAlbumEdit/{{ _id }}]
+				  [href={{ uri("#!music/commitAlbumEdit/%s", _id) }}]
 					@svg "images/commit.svg"
 					"Save"
 
 				a.action-with-icon.cancel \
 				  [title=Cancel changes] \
-				  [href=#!music/cancelAlbumEdit/{{ _id }}]
+				  [href={{ uri("#!music/cancelAlbumEdit/%s", _id) }}]
 					@svg "images/cancel.svg"
 					"Cancel"
 
 			a.action-with-icon.download \
 			  [title=Download album] \
-			  [href=/download/music/album:{{ _id }}]
+			  [href={{ uri("/download/music/album:%s", _id) }}]
 				@svg "images/download.svg"
 				"Download"
 
 			a.action-with-icon.share \
 			  [title=Share album] \
-			  [href=#!music/shareAlbum/{{ _id }}/{{ artist }}/{{ title }}]
+			  [href={{ uri("#!music/shareAlbum/%s/%s/%s", _id, artist, title) }}]
 				@svg "images/share.svg"
 				"Share"
 
 		.info.content-box-header
 			.cover
-				img.current[src=/rest/covers/album:{{ artist }}:{{ title }}]
+				img.current[src={{ uri("/rest/covers/album:%s:%s", artist, title) }}]
 				.dropzone
 					img.valid
 					span.dragging
