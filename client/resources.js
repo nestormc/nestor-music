@@ -3,7 +3,7 @@
 
 define(["rest", "io"], function(rest, io) {
 	"use strict";
-	
+
 	return {
 		covers: {
 			save: function(artist, album, uri) {
@@ -22,10 +22,6 @@ define(["rest", "io"], function(rest, io) {
 		},
 
 		albums: {
-			list: function() {
-				return rest.incremental("albums", 5);
-			},
-
 			watch: function() {
 				return io.watch("albums");
 			}
