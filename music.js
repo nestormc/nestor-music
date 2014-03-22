@@ -20,6 +20,10 @@ function musicPlugin(nestor) {
 
 	// When a file is found, try to read its tags
 	intents.on("media:file", function(path, mime, ffmeta) {
+		if (!ffmeta) {
+			return;
+		}
+
 		var hasAudioStreams = ffmeta.streams.some(function(stream) { return stream.codec_type === "audio"; });
 		var hasVideoStreams = ffmeta.streams.some(function(stream) { return stream.codec_type === "video"; });
 
