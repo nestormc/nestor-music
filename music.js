@@ -24,10 +24,14 @@ function musicPlugin(nestor) {
 			return;
 		}
 
+		// Check for audio streams
 		var hasAudioStreams = ffmeta.streams.some(function(stream) { return stream.codec_type === "audio"; });
-		var hasVideoStreams = ffmeta.streams.some(function(stream) { return stream.codec_type === "video"; });
 
-		// Only handle files with only audio streams
+		// Check for video streams, ignoring attached pictures
+		var hasVideoStreams = ffmeta.streams.some(function(stream) {
+			return stream.codec_type === "video" && stream["DISPOSITION:attached_pic"] !== 1;
+		});
+
 		if (hasAudioStreams && !hasVideoStreams) {
 			intents.emit("nestor:scheduler:enqueue", "music:read-tags", { path: path, mime: mime, meta: ffmeta });
 		}
