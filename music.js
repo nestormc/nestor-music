@@ -14,8 +14,9 @@ function musicPlugin(nestor) {
 	var logger = nestor.logger;
 	var mongoose = nestor.mongoose;
 	var rest = nestor.rest;
+	var misc = nestor.misc;
 
-	var Album = getAlbumModel(mongoose, rest, logger, intents);
+	var Album = getAlbumModel(mongoose, rest, logger, intents, misc);
 
 	// When a file is found, try to read its tags
 	intents.on("media:file", function(path, mime, ffmeta) {

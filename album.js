@@ -16,7 +16,7 @@ function getTrackFile(req, cb) {
 }
 
 
-function getAlbumModel(mongoose, rest, logger, intents) {
+function getAlbumModel(mongoose, rest, logger, intents, misc) {
 	var TrackSchema = new mongoose.Schema({
 		path: String,
 		mime: String,
@@ -101,8 +101,8 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 
 	AlbumSchema.statics.fromFile = function(filepath, mimetype, ffdata, tags, cb) {
 		var albumData = {
-			artist: tags.artist || "",
-			title: tags.album || "",
+			artist: misc.titleCase(tags.artist || ""),
+			title: misc.titleCase(tags.album || ""),
 			year: tags.year || -1,
 		};
 
@@ -111,7 +111,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			mime: mimetype,
 
 			number: tags.track || -1,
-			title: tags.title || "",
+			title: misc.titleCase(tags.title || ""),
 
 			format: ffdata.format.format_name,
 			bitrate: ffdata.format.bit_rate,
@@ -124,6 +124,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			} else {
 				// Manual save event because findOneAndUpdate does not trigger post hooks
 				intents.emit("nestor:watchable:save", "albums", album);
+				logger.debug("Emitted save on album with %s tracks", album.tracks.length);
 
 				intents.emit(
 					"cover:album-art",
@@ -195,7 +196,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 				} else if (album) {
 					if (album.tracks.length === 0) {
 						// Remove album if empty
-						logger.warn("removing album %s - %s", album.artist, album.title);
+						logger.debug("removing album %s - %s", album.artist, album.title);
 
 						intents.emit("cover:album-art:remove", album.artist, album.title);
 
@@ -248,7 +249,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			toObject: albumToObject
 		});
 	});
-	
+
 
 	rest.aggregate("tracks", Album, [
 		{ $project: {
