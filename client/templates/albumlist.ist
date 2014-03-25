@@ -10,6 +10,8 @@
 			@svg "images/playing.svg"
 		span.number.editable "{{ number }}"
 		span.title.editable "{{ title || 'Unknown title' }}"
+		@if artist !== albumArtist
+			span.artist.editable "{{ artist }}"
 		span.controls
 			a.active-icon[title=Play next][href={{ uri("#!music/enqueue/track/%s", path) }}]
 				@svg "images/playlist-enqueue.svg"

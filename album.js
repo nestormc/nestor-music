@@ -15,6 +15,14 @@ function getTrackFile(req, cb) {
 	});
 }
 
+function regexpEscape(str) {
+	return str.replace(/([[\\\].*?+()])/g, "\\$1");
+}
+
+function quoteEscape(str) {
+	return str.replace(/([\\"])/g, "\\$1");
+}
+
 
 function getAlbumModel(mongoose, rest, logger, intents, misc) {
 
@@ -29,6 +37,7 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 		mime: String,
 
 		number: Number,
+		artist: String,
 		title: String,
 
 		bitrate: Number,
@@ -37,7 +46,7 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 	});
 
 
-	TrackSchema.virtual("artist").get(function() {
+	TrackSchema.virtual("albumArtist").get(function() {
 		return this.parent().artist;
 	});
 
@@ -114,8 +123,8 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 
 	AlbumSchema.statics.fromFile = function(filepath, mimetype, ffdata, tags, cb) {
 		var albumData = {
-			artist: misc.titleCase(tags.artist || ""),
-			title: misc.titleCase(tags.album || ""),
+			artist: tags.artist || "",
+			title: tags.album || "",
 			year: tags.year || -1,
 		};
 
@@ -124,7 +133,8 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 			mime: mimetype,
 
 			number: tags.track || -1,
-			title: misc.titleCase(tags.title || ""),
+			artist: tags.artist || "",
+			title: tags.title || "",
 
 			format: ffdata.format.format_name,
 			bitrate: ffdata.format.bit_rate,
@@ -134,6 +144,8 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 		function updateCallback(err, album) {
 			if (err) {
 				cb(err);
+			} else if (!album) {
+				cb(new Error("no album for " + this));
 			} else {
 				album.dispatchWatchable("save");
 
@@ -148,12 +160,27 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 			}
 		}
 
+
+		var artistCondition = { $or: [
+			// album artist is track artist
+			{ artist: albumData.artist },
+
+			// album artist contains track artist
+			{ artist: { $regex: new RegExp(regexpEscape(albumData.artist), "i") } },
+
+			// track artist contains album artist
+			{ $where: "\"" + quoteEscape(albumData.artist.toLowerCase()) + "\".indexOf(this.artist.toLowerCase()) !== -1" }
+		] };
+
+
 		Album.findOneAndUpdate(
-			{
-				artist: albumData.artist,
-				title: albumData.title,
-				tracks: { $not: { $elemMatch: { path: filepath } } }
-			},
+			{ $and: [
+				artistCondition,
+				{
+					title: albumData.title,
+					tracks: { $not: { $elemMatch: { path: filepath } } }
+				}
+			] },
 			{
 				$setOnInsert: {
 					artist: albumData.artist,
@@ -165,19 +192,21 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 			{ upsert : true },
 			function(err, album) {
 				if (err) {
-					if (err.name === "MongoError" && err.lastErrorObject.code === 11000) {
+					if (err.name === "MongoError" && err.lastErrorObject && err.lastErrorObject.code === 11000) {
 						// Album without this track was not found but duplicate key
 						// indicates the album exists with this track, update it
 						Album.findOneAndUpdate(
-							{
-								artist: albumData.artist,
-								title: albumData.title,
-								tracks: { $elemMatch: { path: filepath } }
-							},
+							{ $and: [
+								artistCondition,
+								{
+									title: albumData.title,
+									tracks: { $elemMatch: { path: filepath } }
+								}
+							] },
 							{
 								$set: { "tracks.$": trackData }
 							},
-							updateCallback
+							updateCallback.bind("exists " + JSON.stringify(trackData))
 						);
 					} else {
 						return cb(err);
@@ -187,9 +216,12 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 				} else {
 					// Album was either found without this track or created with no track
 					Album.findOneAndUpdate(
-						{ artist: albumData.artist, title: albumData.title },
+						{ $and: [
+							artistCondition,
+							{ title: albumData.title }
+						] },
 						{ $push: { tracks: trackData } },
-						updateCallback
+						updateCallback.bind("notfound " + JSON.stringify(trackData))
 					);
 				}
 			}
@@ -310,24 +342,25 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 		{ $project: {
 			_id: 0,
 			albumId: "$_id",
-			artist: 1,
+			albumArtist: "$artist",
 			album: "$title",
 			year: 1,
 			tracks: 1,
 		} },
 		{ $unwind: "$tracks" },
 		{ $sort: {
-			artist: 1,
+			albumArtist: 1,
 			album: 1,
 			"tracks.number": 1
 		} },
 		{ $project: {
 			_id: "$tracks.path",
 			albumId: 1,
-			artist: 1,
+			albumArtist: 1,
 			album: 1,
 			year: 1,
 			number: "$tracks.number",
+			artist: "$tracks.artist",
 			title: "$tracks.title",
 			length: "$tracks.length",
 			path: "$tracks.path",
