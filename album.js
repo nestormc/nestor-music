@@ -220,7 +220,7 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 	var albumSort = {
 			artist: 1,
 			year: 1,
-			album: 1
+			title: 1
 		};
 
 	var albumToObject = {
