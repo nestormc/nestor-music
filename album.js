@@ -17,6 +17,13 @@ function getTrackFile(req, cb) {
 
 
 function getAlbumModel(mongoose, rest, logger, intents, misc) {
+
+
+	/*!
+	 * Track schema
+	 */
+
+
 	var TrackSchema = new mongoose.Schema({
 		path: String,
 		mime: String,
@@ -39,6 +46,10 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 	});
 
 
+	/*!
+	 * Album schema
+	 */
+
 	var AlbumSchema = new mongoose.Schema({
 		artist: String,
 		title: String,
@@ -49,6 +60,7 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 
 	AlbumSchema.index({ artist: 1, title: 1 }, { unique: true });
 
+	// Save tags to files pre saving an album
 	AlbumSchema.pre("save", function(next) {
 		var album = this;
 
@@ -80,6 +92,7 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 			return d.promise;
 		}))
 		.then(function() {
+			album.dispatchWatchable("save");
 			next();
 		})
 		.otherwise(function(err) {
@@ -122,9 +135,7 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 			if (err) {
 				cb(err);
 			} else {
-				// Manual save event because findOneAndUpdate does not trigger post hooks
-				intents.emit("nestor:watchable:save", "albums", album);
-				logger.debug("Emitted save on album with %s tracks", album.tracks.length);
+				album.dispatchWatchable("save");
 
 				intents.emit(
 					"cover:album-art",
@@ -196,24 +207,65 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 				} else if (album) {
 					if (album.tracks.length === 0) {
 						// Remove album if empty
-						logger.debug("removing album %s - %s", album.artist, album.title);
-
-						intents.emit("cover:album-art:remove", album.artist, album.title);
+						logger.debug("removing album %s", album.description);
 
 						album.remove(function(err) {
 							if (err) {
-								logger.error("Error removing album %s - %s: %s", album.artist, album.title, err.message);
+								logger.error("Error removing album %s: %s", album.description, err.message);
 							}
+
+							intents.emit("cover:album-art:remove", album.description);
+							album.dispatchWatchable("remove");
 						});
 					} else {
-						// Force update
-						intents.emit("nestor:watchable:save", "albums", album);
+						album.dispatchWatchable("save");
 					}
 				}
 			}
 		);
 	};
 
+
+	// Throttle save events dispatched to watchable
+	var pending = { save: {}, remove: {} };
+	var SAVE_THROTTLE = 1000;
+	AlbumSchema.methods.dispatchWatchable = function(operation) {
+		var self = this;
+		var id = this._id.toString();
+
+		if (id in pending.save) {
+			clearTimeout(pending.save[id]);
+			delete pending.save[id];
+		}
+
+		if (id in pending.remove) {
+			clearTimeout(pending.remove[id]);
+			delete pending.remove[id];
+		}
+
+		pending[operation][id] = setTimeout(function() {
+			if (operation === "save") {
+				// Reload album to make sure it is up to date
+				Album.findById(id, function(err, album) {
+					if (err || !album) {
+						logger.error("Error reloading album: %s", err ? err.message : "not found²");
+					} else {
+						logger.debug("Emit save on album %s", album.description);
+						intents.emit("nestor:watchable:save", "albums", album);
+					}
+				});
+			} else {
+				// No need to reload album
+				logger.debug("Emit remove on album %s", self.description);
+				intents.emit("nestor:watchable:remove", "albums", self);
+			}
+		}, SAVE_THROTTLE);
+	};
+
+
+	AlbumSchema.virtual("description").get(function() {
+		return this.artist + " - " + this.title + " (" + this.tracks.length + " tracks)";
+	});
 
 	var Album = mongoose.model("albums", AlbumSchema);
 
@@ -238,6 +290,8 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 		};
 
 
+
+
 	rest.mongoose("albums", Album)
 		.set("sort", albumSort)
 		.set("toObject", albumToObject);
@@ -246,7 +300,8 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 	intents.on("nestor:startup", function() {
 		intents.emit("nestor:watchable", "albums", Album, {
 			sort: albumSort,
-			toObject: albumToObject
+			toObject: albumToObject,
+			noHooks: true
 		});
 	});
 

@@ -58,8 +58,6 @@ function musicPlugin(nestor) {
 			var mime = data.mime;
 			var ffmeta = data.meta;
 
-			logger.debug("Get tags for %s", path);
-
 			var d = when.defer();
 
 			taglib.read(path, function(err, tags) {
