@@ -23,8 +23,31 @@ function quoteEscape(str) {
 	return str.replace(/([\\"])/g, "\\$1");
 }
 
+function commonString(strings) {
+	return strings
 
-function getAlbumModel(mongoose, rest, logger, intents, misc) {
+	// Remove duplicates
+	.reduce(function(uniques, string) {
+		if (uniques.indexOf(string) === -1) {
+			uniques.push(string);
+		}
+
+		return uniques;
+	}, [])
+
+	// Sort by length
+	.sort(function(a, b) {
+		return a.length - b.length;
+	})
+
+	// Find out if the shortest one is a substring of the others
+	.reduce(function(shortest, string) {
+		return string.toLowerCase().indexOf(shortest.toLowerCase()) !== -1 ? shortest : "";
+	});
+}
+
+
+function getAlbumModel(mongoose, rest, logger, intents) {
 
 
 	/*!
@@ -123,8 +146,8 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 
 	AlbumSchema.statics.fromFile = function(filepath, mimetype, ffdata, tags, cb) {
 		var albumData = {
-			artist: tags.artist || "",
-			title: tags.album || "",
+			artist: tags.artist || "Unknown artist",
+			title: tags.album || "Unknown album",
 			year: tags.year || -1,
 		};
 
@@ -133,8 +156,8 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 			mime: mimetype,
 
 			number: tags.track || -1,
-			artist: tags.artist || "",
-			title: tags.title || "",
+			artist: tags.artist || "Unknown artist",
+			title: tags.title || "Unknown title",
 
 			format: ffdata.format.format_name,
 			bitrate: ffdata.format.bit_rate,
@@ -148,14 +171,6 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 				cb(new Error("no album for " + this));
 			} else {
 				album.dispatchWatchable("save");
-
-				intents.emit(
-					"cover:album-art",
-					album.artist,
-					album.title,
-					path.dirname(filepath)
-				);
-
 				cb(null, album);
 			}
 		}
@@ -282,8 +297,35 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 					if (err || !album) {
 						logger.error("Error reloading album: %s", err ? err.message : "not found²");
 					} else {
-						logger.debug("Emit save on album %s", album.description);
-						intents.emit("nestor:watchable:save", "albums", album);
+						// Aggregate track artists into album artist
+						var albumArtist = commonString(album.tracks.map(function(track) { return track.artist; }));
+						if (albumArtist === "" && album.tracks.length > 1) {
+							albumArtist = "Various artists";
+						}
+
+						if (albumArtist !== album.artist) {
+							Album.findOneAndUpdate(
+								{ _id: id },
+								{ artist: albumArtist },
+								{},
+								function(err) {
+									if (err) {
+										logger.error("Error setting album artist: %s", err.message);
+									} else {
+										album.dispatchWatchable("save");
+									}
+								}
+							);
+						} else {
+							intents.emit(
+								"cover:album-art",
+								album.artist,
+								album.title
+							);
+
+							logger.debug("Emit save on album %s", album.description);
+							intents.emit("nestor:watchable:save", "albums", album);
+						}
 					}
 				});
 			} else {
