@@ -5,6 +5,7 @@
 var path = require("path");
 var taglib = require("taglib");
 var when = require("when");
+var util =require("util");
 
 
 function getTrackFile(req, cb) {
@@ -149,6 +150,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			artist: tags.artist || "Unknown artist",
 			title: tags.album || "Unknown album",
 			year: tags.year || -1,
+			tracks: []
 		};
 
 		var trackData = {
@@ -164,83 +166,80 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			length: ffdata.format.duration
 		};
 
-		function updateCallback(err, album) {
+		var trackDebug = trackData.artist + "/"  + trackData.title+ "/" + albumData.title;
+
+		// First try to find existing track
+		Album.findOne({ tracks: { $elemMatch: { path: filepath } } }, function(err, album) {
 			if (err) {
-				cb(err);
-			} else if (!album) {
-				cb(new Error("no album for " + this));
-			} else {
-				album.dispatchWatchable("save");
-				cb(null, album);
+				logger.error("ERROR find track: %s on %s", err.message, trackDebug);
+				return cb(err);
 			}
-		}
 
+			if (!album) {
+				// No album with track was found, try to find and update matching album, or create one
+				var albumCondition = { $and: [
+						{ $or: [
+							// album artist is track artist
+							{ artist: albumData.artist },
 
-		var artistCondition = { $or: [
-			// album artist is track artist
-			{ artist: albumData.artist },
+							// album artist contains track artist
+							{ artist: { $regex: new RegExp(regexpEscape(albumData.artist), "i") } },
 
-			// album artist contains track artist
-			{ artist: { $regex: new RegExp(regexpEscape(albumData.artist), "i") } },
-
-			// track artist contains album artist
-			{ $where: "\"" + quoteEscape(albumData.artist.toLowerCase()) + "\".indexOf(this.artist.toLowerCase()) !== -1" }
-		] };
-
-
-		Album.findOneAndUpdate(
-			{ $and: [
-				artistCondition,
-				{
-					title: albumData.title,
-					tracks: { $not: { $elemMatch: { path: filepath } } }
-				}
-			] },
-			{
-				$setOnInsert: {
-					artist: albumData.artist,
-					title: albumData.title,
-					year: albumData.year,
-					tracks: []
-				}
-			},
-			{ upsert : true },
-			function(err, album) {
-				if (err) {
-					if (err.name === "MongoError" && err.lastErrorObject && err.lastErrorObject.code === 11000) {
-						// Album without this track was not found but duplicate key
-						// indicates the album exists with this track, update it
-						Album.findOneAndUpdate(
-							{ $and: [
-								artistCondition,
-								{
-									title: albumData.title,
-									tracks: { $elemMatch: { path: filepath } }
-								}
-							] },
-							{
-								$set: { "tracks.$": trackData }
-							},
-							updateCallback.bind("exists " + JSON.stringify(trackData))
-						);
-					} else {
-						return cb(err);
-					}
-				} else if (!album) {
-					return cb(new Error("No album after findOneAndUpdate !"));
-				} else {
-					// Album was either found without this track or created with no track
-					Album.findOneAndUpdate(
-						{ $and: [
-							artistCondition,
-							{ title: albumData.title }
+							// track artist contains album artist
+							{ $where: "\"" + quoteEscape(albumData.artist.toLowerCase()) + "\".indexOf(this.artist.toLowerCase()) !== -1" }
 						] },
-						{ $push: { tracks: trackData } },
-						updateCallback.bind("notfound " + JSON.stringify(trackData))
-					);
-				}
+						{ title: albumData.title }
+					] };
+
+				Album.findOneAndUpdate(
+					albumCondition,
+					{ $setOnInsert: albumData },
+					{ upsert: true },
+					function(err, album) {
+						if (err) {
+							logger.error("ERROR upsert: %s on %s", err.message, trackDebug);
+							return cb(err);
+						}
+
+						if (!album) {
+							logger.error("ERROR upsert: no album on %s", trackDebug);
+							return cb(new Error("No album after upsert !?"));
+						}
+
+						// Album was either found without this track or created empty: add track
+						var updateOp = { $push: { tracks: trackData } };
+
+						if (albumData.year !== -1) {
+							// Update album year if we have something meaningful
+							updateOp.year = albumData.year;
+						}
+
+						Album.findOneAndUpdate(
+							{ _id: album._id},
+							updateOp,
+							function(err, album) {
+								if (err) {
+									logger.error("ERROR add track: %s on %s", err.message, trackDebug);
+									return cb(err);
+								}
+
+								if (!album) {
+									logger.error("ERROR add track: no album on %s", trackDebug);
+									return cb(new Error("No album after add track !?"));
+								}
+
+								// Dispatch watchable save event
+								album.dispatchWatchable("save");
+								cb();
+							}
+						);
+					}
+				);
+			} else {
+				// Album with track found, nothing to do
+				cb();
 			}
-		);
+		});
 	};
 
 
