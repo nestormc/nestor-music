@@ -53,11 +53,12 @@
 				@svg "images/download.svg"
 				"Download"
 
-			a.action-with-icon.share \
-			  [title=Share album] \
-			  [href={{ uri("#!music/shareAlbum/%s/%s/%s", _id, artist, title) }}]
-				@svg "images/share.svg"
-				"Share"
+			@if-right "nestor:shares"
+				a.action-with-icon.share \
+				  [title=Share album] \
+				  [href={{ uri("#!music/shareAlbum/%s/%s/%s", _id, artist, title) }}]
+					@svg "images/share.svg"
+					"Share"
 
 		.info.content-box-header
 			.cover
