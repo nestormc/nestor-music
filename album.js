@@ -136,7 +136,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 
 	AlbumSchema.statics.getTrack = function(path, cb) {
 		Album.findOne({ tracks: { $elemMatch: { path: path } } }, function(err, album) {
-			if (err) {
+			if (err || !album) {
 				cb(err);
 			} else {
 				cb(null, album.tracks.filter(function(t) { return t.path === path; })[0]);

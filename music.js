@@ -72,6 +72,22 @@ function musicPlugin(nestor) {
 			return d.promise;
 		});
 
+		// Register streaming provider
+		intents.emit("nestor:streaming", "music", function(path, callback) {
+			Album.getTrack(path, function(err, track) {
+				if (err || !track) {
+					return callback(err);
+				}
+
+				callback(null, {
+					source: track.path,
+					type: "audio",
+					length: track.length,
+					mimetype: track.mime
+				});
+			});
+		});
+
 		// Register shared resource handler
 		intents.emit("share:provider", "music", function(id, builder, callback) {
 			if (id.indexOf(":") === -1) {
