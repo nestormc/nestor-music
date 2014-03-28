@@ -8,14 +8,6 @@ var when = require("when");
 var util =require("util");
 
 
-function getTrackFile(req, cb) {
-	var track = req.mongoose.item;
-
-	process.nextTick(function() {
-		cb.file(null, track.path, track.mime);
-	});
-}
-
 function regexpEscape(str) {
 	return str.replace(/([[\\\].*?+()])/g, "\\$1");
 }
@@ -409,9 +401,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 			format: "$tracks.format",
 			bitrate: "$tracks.bitrate"
 		} }
-	])
-		.sub(":id/file")
-		.get(getTrackFile);
+	]);
 
 	return Album;
 }
