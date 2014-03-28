@@ -1,6 +1,0 @@
-[data-path={{ path }}] \
-[data-file={{ uri("/rest/tracks/%s/file", path) }}] \
-[data-artist={{ artist }}] \
-[data-album={{ album }}] \
-[data-title={{ title }}] \
-[data-length={{ length }}]
