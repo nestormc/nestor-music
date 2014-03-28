@@ -2,15 +2,9 @@
 
 "use strict";
 
-var path = require("path");
 var taglib = require("taglib");
 var when = require("when");
-var util =require("util");
 
-
-function regexpEscape(str) {
-	return str.replace(/([[\\\].*?+()])/g, "\\$1");
-}
 
 function quoteEscape(str) {
 	return str.replace(/([\\"])/g, "\\$1");
@@ -40,7 +34,7 @@ function commonString(strings) {
 }
 
 
-function getAlbumModel(mongoose, rest, logger, intents) {
+function getAlbumModel(mongoose, rest, logger, intents, misc) {
 
 
 	/*!
@@ -175,7 +169,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 							{ artist: albumData.artist },
 
 							// album artist contains track artist
-							{ artist: { $regex: new RegExp(regexpEscape(albumData.artist), "i") } },
+							{ artist: { $regex: new RegExp(misc.regexpEscape(albumData.artist), "i") } },
 
 							// track artist contains album artist
 							{ $where: "\"" + quoteEscape(albumData.artist.toLowerCase()) + "\".indexOf(this.artist.toLowerCase()) !== -1" }
@@ -343,7 +337,7 @@ function getAlbumModel(mongoose, rest, logger, intents) {
 	var albumToObject = {
 			virtuals: true,
 
-			transform: function(doc, ret, options) {
+			transform: function(doc, ret) {
 				delete ret.__v;
 
 				if (ret.tracks) {
