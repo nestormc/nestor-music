@@ -4,10 +4,10 @@
 define([
 	"ist", "ui", "dom", "router", "when", "plugins",
 
-	"resources", "util", "track",
+	"resources", "util",
 
 	"ist!templates/albumlist"
-], function(ist, ui, dom, router, when, plugins, resources, util, MusicTrack, template) {
+], function(ist, ui, dom, router, when, plugins, resources, util, template) {
 	"use strict";
 
 	var $ = dom.$,
@@ -132,9 +132,7 @@ define([
 				ui.player.clear();
 				ui.player.enqueue(selectedItems.map(function(track) {
 					return {
-						provider: "music",
-						id: track.dataset.path,
-						track: new MusicTrack(track.dataset)
+						track: new ui.player.Track("music", track.dataset.path)
 					};
 				}));
 
@@ -168,24 +166,16 @@ define([
 
 		routes: {
 			"!enqueue/track/:path": function(view, err, req, next) {
-				var track = view.$(".track[data-path='" + req.match.path + "']");
-
 				ui.player.enqueue({
-					provider: "music",
-					id: req.match.path,
-					track: new MusicTrack(track.dataset)
+					track: new ui.player.Track("music", req.match.path)
 				}, true);
 
 				next();
 			},
 
 			"!add/track/:path": function(view, err, req, next) {
-				var track = view.$(".track[data-path='" + req.match.path + "']");
-
 				ui.player.enqueue({
-					provider: "music",
-					id: req.match.path,
-					track: new MusicTrack(track.dataset)
+					track: new ui.player.Track("music", req.match.path)
 				});
 
 				next();

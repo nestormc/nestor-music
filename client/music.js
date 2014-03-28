@@ -2,17 +2,9 @@
 /*global define */
 
 define(
-[ "ui", "router", "track", "albumlist" ],
-function(ui, router, MusicTrack) {
+[ "ui", "router", "albumlist" ],
+function(ui, router) {
 	"use strict";
-
-
-	ui.started.add(function() {
-		ui.player.register("music", function(path) {
-			return new MusicTrack(null, path);
-		});
-	});
-
 
 
 	/*!
@@ -25,7 +17,8 @@ function(ui, router, MusicTrack) {
 		views: {
 			albums: {
 				type: "main",
-				link: "albums"
+				link: "albums",
+				icon: "album"
 			}
 		}
 	};
