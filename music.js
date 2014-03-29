@@ -29,7 +29,7 @@ function musicPlugin(nestor) {
 
 		// Check for video streams, ignoring attached pictures
 		var hasVideoStreams = ffmeta.streams.some(function(stream) {
-			return stream.codec_type === "video" && stream["DISPOSITION:attached_pic"] !== 1;
+			return stream.codec_type === "video" && stream.time_base !== "O/1";
 		});
 
 		if (hasAudioStreams && !hasVideoStreams) {
