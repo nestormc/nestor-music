@@ -6,9 +6,24 @@ var taglib = require("taglib");
 var when = require("when");
 
 
+function filterStream(stream) {
+	return stream.codec_type === "audio";
+}
+
+
+function mapStream(stream) {
+	return {
+		index: Number(stream.index),
+		type: stream.codec_type,
+		codec: stream.codec_name
+	};
+}
+
+
 function quoteEscape(str) {
 	return str.replace(/([\\"])/g, "\\$1");
 }
+
 
 function commonString(strings) {
 	return strings
@@ -41,6 +56,12 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 	 * Track schema
 	 */
 
+	var StreamSchema = new mongoose.Schema({
+		index: Number,
+		type: { type: String },
+		codec: String
+	}, { _id: false });
+
 
 	var TrackSchema = new mongoose.Schema({
 		path: String,
@@ -50,9 +71,10 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 		artist: String,
 		title: String,
 
-		bitrate: Number,
 		length: Number,
-		format: String
+
+		format: String,
+		streams: [StreamSchema]
 	});
 
 
@@ -146,10 +168,10 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 			number: tags.track || -1,
 			artist: tags.artist || "Unknown artist",
 			title: tags.title || "Unknown title",
+			length: ffdata.format.duration,
 
 			format: ffdata.format.format_name,
-			bitrate: ffdata.format.bit_rate,
-			length: ffdata.format.duration
+			streams: ffdata.streams.filter(filterStream).map(mapStream)
 		};
 
 		var trackDebug = trackData.artist + "/"  + trackData.title+ "/" + albumData.title;
@@ -392,8 +414,7 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 			length: "$tracks.length",
 			path: "$tracks.path",
 			mime: "$tracks.mime",
-			format: "$tracks.format",
-			bitrate: "$tracks.bitrate"
+			format: "$tracks.format"
 		} }
 	]);
 
