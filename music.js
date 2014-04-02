@@ -82,6 +82,7 @@ function musicPlugin(nestor) {
 				callback(null, {
 					source: track.path,
 					type: "audio",
+					bitrate: track.bitrate,
 					length: track.length,
 					title: track.title,
 					subtitle: track.artist,

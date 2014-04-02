@@ -74,7 +74,8 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 		length: Number,
 
 		format: String,
-		streams: [StreamSchema]
+		streams: [StreamSchema],
+		bitrate: Number
 	});
 
 
@@ -171,7 +172,8 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 			length: ffdata.format.duration,
 
 			format: ffdata.format.format_name,
-			streams: ffdata.streams.filter(filterStream).map(mapStream)
+			streams: ffdata.streams.filter(filterStream).map(mapStream),
+			bitrate: Math.round(Number(ffdata.format.bit_rate) / 1000)
 		};
 
 		var trackDebug = trackData.artist + "/"  + trackData.title+ "/" + albumData.title;
