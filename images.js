@@ -5,6 +5,7 @@ var when = require("when");
 var fs = require("fs");
 var glob = require("glob");
 var path = require("path");
+var musicbrainz = require("./musicbrainz");
 
 var fetchers = [];
 
@@ -15,6 +16,9 @@ var coverExts = {
 	"png": "image/png"
 };
 var coverPattern = "*{" + coverKeywords.join(",") + "}*.{" + Object.keys(coverExts).join(",") + "}";
+
+/* Time to wait after last file discovery before searching on MusicBrainz */
+var MB_SEARCH_AFTER = 20000;
 
 
 function CoverFetcher(Image, nestor, artist, album) {
@@ -30,6 +34,10 @@ function CoverFetcher(Image, nestor, artist, album) {
 
 	this.searchedDirs = [];
 	this.lastSearch = this.searchExisting();
+	this.mbSchedule = null;
+	this.mbSearched = false;
+
+	this.scheduleMusicBrainzSearch();
 }
 
 CoverFetcher.prototype.searchExisting = function() {
@@ -111,6 +119,37 @@ CoverFetcher.prototype.addFileHint = function(filepath, ffprobeData) {
 			});
 		});
 	}
+
+	this.scheduleMusicBrainzSearch();
+};
+
+CoverFetcher.prototype.scheduleMusicBrainzSearch = function() {
+	if (this.mbSchedule) {
+		clearTimeout(this.mbSchedule);
+	}
+
+	var self = this;
+	this.mbSchedule = setTimeout(function() {
+		if (!self.mbSearched) {
+			self.mbSearched = true;
+			self.enqueueSearcher(function(next) {
+				self.logger.debug("Searching on MusicBrainz for %s", self.key);
+
+				musicbrainz.searchCoverArt(self.artist, self.album, function(err, data, mime) {
+					if (err) {
+						self.logger.warn("MusicBrainz error for %s: %s", self.key, err.message);
+						next.reject(err);
+					} else {
+						next.resolve();
+
+						if (data) {
+							self.storeCover(data, mime);
+						}
+					}
+				});
+			});
+		}
+	}, MB_SEARCH_AFTER);
 };
 
 

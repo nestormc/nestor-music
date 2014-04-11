@@ -11,6 +11,8 @@
   "license": "MIT",
   "dependencies": {
     "glob": "*",
+    "minidom": "*",
+    "request": "*",
     "taglib": "*",
     "when": "*"
   }
