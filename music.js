@@ -12,11 +12,8 @@ var getAlbumModel = require("./album");
 function musicPlugin(nestor) {
 	var intents = nestor.intents;
 	var logger = nestor.logger;
-	var mongoose = nestor.mongoose;
-	var rest = nestor.rest;
-	var misc = nestor.misc;
 
-	var Album = getAlbumModel(mongoose, rest, logger, intents, misc);
+	var Album = getAlbumModel(nestor);
 
 	// When a file is found, try to read its tags
 	intents.on("media:file", function(path, mime, ffmeta) {
@@ -88,7 +85,7 @@ function musicPlugin(nestor) {
 					length: track.length,
 					title: track.title,
 					subtitle: track.artist,
-					cover: "/rest/covers/album:" + encodeURIComponent(track.albumArtist) + ":" + encodeURIComponent(track.album),
+					cover: "/rest/music-images/album:" + encodeURIComponent(track.albumArtist) + ":" + encodeURIComponent(track.album),
 					mimetype: track.mime
 				});
 			});
@@ -150,7 +147,7 @@ musicPlugin.manifest = {
 	name: "music",
 	description: "Music library",
 	dependencies: ["nestor-media"],
-	recommends: ["nestor-coverart", "nestor-share"],
+	recommends: ["nestor-share"],
 
 	client: {
 		public: __dirname + "/client/public",

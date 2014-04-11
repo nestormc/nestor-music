@@ -5,6 +5,7 @@
 var taglib = require("taglib");
 var when = require("when");
 
+var images = require("./images");
 
 function filterStream(stream) {
 	return stream.codec_type === "audio";
@@ -49,8 +50,14 @@ function commonString(strings) {
 }
 
 
-function getAlbumModel(mongoose, rest, logger, intents, misc) {
+function getAlbumModel(nestor) {
+	var mongoose = nestor.mongoose;
+	var rest = nestor.rest;
+	var logger = nestor.logger;
+	var intents = nestor.intents;
+	var misc = nestor.misc;
 
+	var imageStore = images(nestor);
 
 	/*!
 	 * Track schema
@@ -153,6 +160,7 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 		});
 	};
 
+	var pendingFiles = {};
 
 	AlbumSchema.statics.fromFile = function(filepath, mimetype, ffdata, tags, cb) {
 		var albumData = {
@@ -186,6 +194,8 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 			}
 
 			if (!album) {
+				pendingFiles[filepath] = ffdata;
+
 				// No album with track was found, try to find and update matching album, or create one
 				var albumCondition = { $and: [
 						{ $or: [
@@ -270,7 +280,7 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 								logger.error("Error removing album %s: %s", album.description, err.message);
 							}
 
-							intents.emit("cover:album-art:remove", album.description);
+							imageStore.removeAlbumCover(album.artist, album.title);
 							album.dispatchWatchable("remove");
 						});
 					} else {
@@ -326,14 +336,16 @@ function getAlbumModel(mongoose, rest, logger, intents, misc) {
 								}
 							);
 						} else {
-							intents.emit(
-								"cover:album-art",
-								album.artist,
-								album.title
-							);
-
-							logger.debug("Emit save on album %s", album.description);
 							intents.emit("nestor:watchable:save", "albums", album);
+
+							var trackHints = {};
+
+							album.tracks.forEach(function(track) {
+								trackHints[track.path] = pendingFiles[track.path];
+								delete pendingFiles[track.path];
+							});
+
+							imageStore.fetchAlbumCover(album.artist, album.title, trackHints);
 						}
 					}
 				});

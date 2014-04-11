@@ -62,7 +62,7 @@
 
 		.info.content-box-header
 			.cover
-				img.current[src={{ uri("/rest/covers/album:%s:%s", artist, title) }}]
+				img.current[src={{ uri("/rest/music-images/cover:%s:%s", artist, title) }}]
 				.dropzone
 					img.valid
 					span.dragging
