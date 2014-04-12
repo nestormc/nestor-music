@@ -41,7 +41,7 @@ define([
 	var behaviour = {
 		".cover > img": {
 			"error": function() {
-				this.src = "static/icons/nocover.svg";
+				this.src = "static/plugins/music/icons/nocover.svg";
 			}
 		},
 

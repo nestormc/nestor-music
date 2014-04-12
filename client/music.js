@@ -18,7 +18,7 @@ function(ui, router) {
 			albums: {
 				type: "main",
 				link: "albums",
-				icon: "album"
+				icon: "music:album"
 			}
 		}
 	};
