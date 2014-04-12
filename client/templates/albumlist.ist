@@ -7,18 +7,18 @@
 	  [data-title={{ title }}] \
 	  [data-length={{ length }}]
 		span.play-indicator
-			@svg "images/playing.svg"
+			@icon "playing"
 		span.number.editable "{{ number }}"
 		span.title.editable "{{ title || 'Unknown title' }}"
 		@if artist !== albumArtist
 			span.artist.editable "{{ artist }}"
 		span.controls
 			a.active-icon[title=Play next][href={{ uri("#!music/enqueue/track/%s", path) }}]
-				@svg "images/playlist-enqueue.svg"
+				@icon "playlist-enqueue"
 			a.active-icon[title=Add to playlist][href={{ uri("#!music/add/track/%s", path) }}]
-				@svg "images/playlist-add.svg"
+				@icon "playlist-add"
 			a.active-icon[title=Download track][href={{ uri("/download/music/track:%s", path) }}]
-				@svg "images/download.svg"
+				@icon "download"
 		span.length "{{ humanTime(length) }}"
 
 
@@ -32,32 +32,32 @@
 				a.action-with-icon.edit \
 				  [title=Edit metadata] \
 				  [href={{ uri("#!music/editAlbum/%s", _id) }}]
-					@svg "images/edit.svg"
+					@icon "edit"
 					"Edit"
 
 				a.action-with-icon.save \
 				  [title=Save changes] \
 				  [href={{ uri("#!music/commitAlbumEdit/%s", _id) }}]
-					@svg "images/commit.svg"
+					@icon "commit"
 					"Save"
 
 				a.action-with-icon.cancel \
 				  [title=Cancel changes] \
 				  [href={{ uri("#!music/cancelAlbumEdit/%s", _id) }}]
-					@svg "images/cancel.svg"
+					@icon "cancel"
 					"Cancel"
 
 			a.action-with-icon.download \
 			  [title=Download album] \
 			  [href={{ uri("/download/music/album:%s", _id) }}]
-				@svg "images/download.svg"
+				@icon "download"
 				"Download"
 
 			@if-right "nestor:shares"
 				a.action-with-icon.share \
 				  [title=Share album] \
 				  [href={{ uri("#!music/shareAlbum/%s/%s/%s", _id, artist, title) }}]
-					@svg "images/share.svg"
+					@icon "share"
 					"Share"
 
 		.info.content-box-header
@@ -66,9 +66,9 @@
 				.dropzone
 					img.valid
 					span.dragging
-						@svg "images/dragimage.svg"
+						@icon "dragimage"
 					span.invalid
-						@svg "images/cancel.svg"
+						@icon "cancel"
 			span.title.editable "{{ title || 'Unknown album' }}"
 			span.artist
 				span.by "by "
