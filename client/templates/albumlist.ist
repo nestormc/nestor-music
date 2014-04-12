@@ -13,12 +13,20 @@
 		@if artist !== albumArtist
 			span.artist.editable "{{ artist }}"
 		span.controls
-			a.active-icon[title=Play next][href={{ uri("#!music/enqueue/track/%s", path) }}]
-				@icon "playlist-enqueue"
-			a.active-icon[title=Add to playlist][href={{ uri("#!music/add/track/%s", path) }}]
-				@icon "playlist-add"
-			a.active-icon[title=Download track][href={{ uri("/download/music/track:%s", path) }}]
-				@icon "share:download"
+			@menu
+				a.action-with-icon \
+				  [href={{ uri("#!music/enqueue/track/%s", path) }}]
+					@icon "playlist-enqueue"
+					"Play next"
+				a.action-with-icon \
+				  [href={{ uri("#!music/add/track/%s", path) }}]
+					@icon "playlist-add"
+					"Add to playlist"
+				.menu-separator
+				a.action-with-icon \
+				  [href={{ uri("/download/music/track:%s", path) }}]
+					@icon "share:download"
+					"Download track"
 		span.length "{{ humanTime(length) }}"
 
 
@@ -30,37 +38,32 @@
 		@menu
 			@if-right "music:edit-tags"
 				a.action-with-icon.edit \
-				  [title=Edit metadata] \
 				  [href={{ uri("#!music/editAlbum/%s", _id) }}]
 					@icon "edit"
-					"Edit"
+					"Edit metadata"
 
 				a.action-with-icon.save \
-				  [title=Save changes] \
 				  [href={{ uri("#!music/commitAlbumEdit/%s", _id) }}]
 					@icon "commit"
-					"Save"
+					"Save edits"
 
 				a.action-with-icon.cancel \
-				  [title=Cancel changes] \
 				  [href={{ uri("#!music/cancelAlbumEdit/%s", _id) }}]
 					@icon "cancel"
-					"Cancel"
+					"Cancel edits"
 
 			.menu-separator
 
 			a.action-with-icon.download \
-			  [title=Download album] \
 			  [href={{ uri("/download/music/album:%s", _id) }}]
 				@icon "share:download"
-				"Download"
+				"Download album"
 
 			@if-right "nestor:shares"
 				a.action-with-icon.share \
-				  [title=Share album] \
 				  [href={{ uri("#!music/shareAlbum/%s/%s/%s", _id, artist, title) }}]
 					@icon "share:share"
-					"Share"
+					"Share album"
 
 		.info.content-box-header
 			.cover
