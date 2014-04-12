@@ -27,7 +27,7 @@
 	  [data-id={{ _id }}] \
 	  [data-artist={{ artist }}] \
 	  [data-title={{ title }}]
-		.edit-controls.content-box-actions
+		@menu
 			@if-right "music:edit-tags"
 				a.action-with-icon.edit \
 				  [title=Edit metadata] \
@@ -46,6 +46,8 @@
 				  [href={{ uri("#!music/cancelAlbumEdit/%s", _id) }}]
 					@icon "cancel"
 					"Cancel"
+
+			.menu-separator
 
 			a.action-with-icon.download \
 			  [title=Download album] \
