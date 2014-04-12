@@ -85,7 +85,7 @@ function musicPlugin(nestor) {
 					length: track.length,
 					title: track.title,
 					subtitle: track.artist,
-					cover: "/rest/music-images/album:" + encodeURIComponent(track.albumArtist) + ":" + encodeURIComponent(track.album),
+					cover: "/rest/music-images/cover:" + encodeURIComponent(track.albumArtist) + ":" + encodeURIComponent(track.album),
 					mimetype: track.mime
 				});
 			});
