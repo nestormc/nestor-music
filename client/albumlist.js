@@ -165,6 +165,16 @@ define([
 
 
 		routes: {
+			"!play/track/:path": function(view, err, req, next) {
+				ui.player.clear();
+				ui.player.enqueue({
+					track: new ui.player.Track("music", req.match.path)
+				});
+				ui.player.play(0);
+
+				next();
+			},
+
 			"!enqueue/track/:path": function(view, err, req, next) {
 				ui.player.enqueue({
 					track: new ui.player.Track("music", req.match.path)

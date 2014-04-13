@@ -15,6 +15,10 @@
 		span.controls
 			@menu
 				a.action-with-icon \
+				  [href={{ uri("#!music/play/track/%s", path) }}]
+					@icon "play"
+					"Play"
+				a.action-with-icon \
 				  [href={{ uri("#!music/enqueue/track/%s", path) }}]
 					@icon "playlist-enqueue"
 					"Play next"
