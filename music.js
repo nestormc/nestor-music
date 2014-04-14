@@ -49,6 +49,13 @@ function musicPlugin(nestor) {
 	});
 
 	intents.on("nestor:startup", function() {
+		intents.emit("nestor:right", {
+			name: "music:edit-tags",
+			description: "Edit music metadata",
+			route: "/TODO*"
+		});
+
+
 		// Register tag reader
 		intents.emit("nestor:scheduler:register", "music:read-tags", function getFileTags(data) {
 			var path = data.path;
