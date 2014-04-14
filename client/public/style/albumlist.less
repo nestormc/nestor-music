@@ -1,7 +1,10 @@
 @albumMargins: @contentBoxMargin;
 @coverSize: 12em;
+@smallCoverSize: 4em;
 
 .album {
+	min-height: @coverSize + 2*@albumMargins;
+
 	.menu {
 		.edit {
 			display: block;
@@ -30,6 +33,12 @@
 		.cover {
 			width: @coverSize;
 			height: @coverSize;
+
+			@media @small {
+				width: @smallCoverSize;
+				height: @smallCoverSize;
+			}
+
 			float: left;
 			margin-right: @albumMargins;
 
@@ -122,6 +131,12 @@
 
 	ul.tracklist {
 		list-style-type: none;
+		margin-left: @coverSize + @albumMargins;
+
+		@media @small {
+			clear: left;
+			margin-left: 0;
+		}
 
 		li.track {
 			position: relative;
@@ -187,14 +202,6 @@
 				color: @mlGray;
 			}
 		}
-	}
-}
-
-.album {
-	min-height: @coverSize + 2*@albumMargins;
-
-	ul.tracklist {
-		margin-left: @coverSize + @albumMargins;
 	}
 }
 
