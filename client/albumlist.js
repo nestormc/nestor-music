@@ -15,7 +15,6 @@ define([
 		$P = dom.$P;
 
 
-
 	// Group albums by artist
 	function dataMapper(albums) {
 		var data = { artists: [] };
@@ -191,12 +190,12 @@ define([
 				next();
 			},
 
-			"!shareAlbum/:id/:artist/:title": function(view, err, req, next) {
-				plugins.share("music", "album:" + req.match.id, "Album " + req.match.title + " by " + req.match.artist);
+			"!share/album/:id/:artist/:title": function(view, err, req, next) {
+				plugins.share.shareResource("music", "album:" + req.match.id, "Album " + req.match.title + " by " + req.match.artist);
 				next();
 			},
 
-			"!editAlbum/:id": function(view, err, req, next) {
+			"!edit/album/:id": function(view, err, req, next) {
 				var album = view.$(".album[data-id='" + req.match.id + "']");
 				album.classList.add("editing");
 
@@ -208,7 +207,7 @@ define([
 				next();
 			},
 
-			"!cancelAlbumEdit/:id": function(view, err, req, next) {
+			"!edit-cancel/album/:id": function(view, err, req, next) {
 				var album = view.$(".album[data-id='" + req.match.id + "']");
 				album.classList.remove("editing");
 
@@ -220,7 +219,7 @@ define([
 				next();
 			},
 
-			"!commitAlbumEdit/:id": function(view, err, req, next) {
+			"!edit-commit/album/:id": function(view, err, req, next) {
 				var album = view.$(".album[data-id='" + req.match.id + "']");
 				album.classList.remove("editing");
 
@@ -287,5 +286,10 @@ define([
 	ui.started.add(function() {
 		var albumView = ui.view("albums");
 		ui.helpers.setupContentList(albumView, contentListConfig);
+
+		plugins.share.setShareIcons("music", {
+			"music:album": /^album:/,
+			"music:nocover": /^track:/
+		});
 	});
 });

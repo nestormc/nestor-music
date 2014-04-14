@@ -42,17 +42,17 @@
 		@menu
 			@if-right "music:edit-tags"
 				a.action-with-icon.edit \
-				  [href={{ uri("#!music/editAlbum/%s", _id) }}]
+				  [href={{ uri("#!music/edit/album/%s", _id) }}]
 					@icon "edit"
 					"Edit metadata"
 
 				a.action-with-icon.save \
-				  [href={{ uri("#!music/commitAlbumEdit/%s", _id) }}]
+				  [href={{ uri("#!music/edit-commit/album/%s", _id) }}]
 					@icon "commit"
 					"Save edits"
 
 				a.action-with-icon.cancel \
-				  [href={{ uri("#!music/cancelAlbumEdit/%s", _id) }}]
+				  [href={{ uri("#!music/edit-cancel/album/%s", _id) }}]
 					@icon "cancel"
 					"Cancel edits"
 
@@ -65,7 +65,7 @@
 
 			@if-right "nestor:shares"
 				a.action-with-icon.share \
-				  [href={{ uri("#!music/shareAlbum/%s/%s/%s", _id, artist, title) }}]
+				  [href={{ uri("#!music/share/album/%s/%s/%s", _id, artist, title) }}]
 					@icon "share:share"
 					"Share album"
 
