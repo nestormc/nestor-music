@@ -12,6 +12,7 @@
 		span.title.editable "{{ title || 'Unknown title' }}"
 		@if artist !== albumArtist
 			span.artist.editable "{{ artist }}"
+		span.length "{{ humanTime(length) }}"
 		span.controls
 			@menu
 				a.action-with-icon \
@@ -31,7 +32,6 @@
 				  [href={{ uri("/download/music/track:%s", path) }}]
 					@icon "share:download"
 					"Download track"
-		span.length "{{ humanTime(length) }}"
 
 
 @define "music-albums-album"
@@ -83,6 +83,7 @@
 				span.by "by "
 				span.name.editable "{{ artist || 'Unknown artist' }}"
 			span.year.editable "{{ year }}"
+			.info-clear
 
 		ul.tracklist.content-list
 			@each tracks

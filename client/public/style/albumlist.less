@@ -34,7 +34,7 @@
 			width: @coverSize;
 			height: @coverSize;
 
-			@media @small {
+			@media @medium {
 				width: @smallCoverSize;
 				height: @smallCoverSize;
 			}
@@ -123,6 +123,12 @@
 			display: none;
 			vertical-align: top;
 		}
+
+		@media @medium {
+			.info-clear {
+				clear: both;
+			}
+		}
 	}
 
 	&.playlist.playing .info .play-indicator {
@@ -133,25 +139,49 @@
 		list-style-type: none;
 		margin-left: @coverSize + @albumMargins;
 
-		@media @small {
-			clear: left;
+		@media @medium {
 			margin-left: 0;
 		}
 
 		li.track {
-			position: relative;
+			display: flex;
+			flex-flow: row;
+			align-items: baseline;
 
-			&>* {
-				vertical-align: text-top;
+			.play-indicator {
+				visibility: hidden;
+
+				svg {
+					height: .75em;
+					fill: @yellow !important;
+				}
 			}
 
-			&.error {
-				background-color: red;
+			&.playing .play-indicator {
+				visibility: visible;
+			}
+
+			.number {
+				flex-basis: 1.5em;
+				margin-right: .25em;
+				color: @mlGray;
+				text-align: right;
+			}
+
+			.title, .artist {
+			}
+
+			.artist {
+				color: @mlGray;
+			}
+
+			.length {
+				margin-left: auto;
+				color: @mlGray;
 			}
 
 			.controls {
-				position: absolute;
-				right: 4em;
+				flex-basis: 1em;
 
 				.menuicon {
 					visibility: hidden;
@@ -162,45 +192,6 @@
 				visibility: visible;
 			}
 
-			.play-indicator {
-				visibility: hidden;
-
-				svg {
-					height: .75em;
-
-					* {
-						fill: @yellow !important;
-					}
-				}
-			}
-
-			&.playing .play-indicator {
-				visibility: visible;
-			}
-
-			.number {
-				margin-right: 1em;
-				color: @mlGray;
-
-				display: inline-block;
-				width: 1.5em;
-				text-align: right;
-			}
-
-			.title, .artist {
-				display: inline-block;
-			}
-
-			.artist {
-				color: @mlGray;
-				padding-left: .5em;
-			}
-
-			.length {
-				position: absolute;
-				right: 1em;
-				color: @mlGray;
-			}
 		}
 	}
 }
