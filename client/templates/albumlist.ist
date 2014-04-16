@@ -69,9 +69,10 @@
 					@icon "share:share"
 					"Share album"
 
+		.cover
+			img.current[src={{ uri("/rest/music-images/cover:%s:%s", artist, title) }}]
+
 		.info.content-box-header
-			.cover
-				img.current[src={{ uri("/rest/music-images/cover:%s:%s", artist, title) }}]
 
 			span.title.editable "{{ title || 'Unknown album' }}"
 			span.artist

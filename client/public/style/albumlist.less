@@ -2,6 +2,9 @@
 @coverSize: 12em;
 @smallCoverSize: 4em;
 
+
+/* Album style */
+
 .album {
 	min-height: @coverSize + 2*@albumMargins;
 
@@ -28,178 +31,130 @@
 			display: block;
 		}
 	}
+}
 
-	.info {
-		.cover {
-			width: @coverSize;
-			height: @coverSize;
+/* Cover style */
 
-			@media @medium {
-				width: @smallCoverSize;
-				height: @smallCoverSize;
-			}
+.cover {
+	width: @coverSize;
+	height: @coverSize;
 
-			float: left;
-			margin-right: @albumMargins;
+	@media @medium {
+		width: @smallCoverSize;
+		height: @smallCoverSize;
+	}
 
-			position: relative;
+	float: left;
+	margin-right: @albumMargins;
 
-			&> img {
-				width: 100%;
-				height: 100%;
-			}
+	position: relative;
 
-			.dropzone {
-				display: none;
+	&> img {
+		width: 100%;
+		height: 100%;
+	}
+}
 
-				position: absolute;
-				top: 0;
-				left: 0;
-				right: 0;
-				bottom: 0;
+/* Album info header style */
 
-				border: .25em dashed @mlGray;
-				background-color: white;
+.info {
+	.title {
+		font-weight: bold;
+		font-size: 1.2em;
+		color: @darkGray;
+	}
 
-				img, svg {
-					width: 100%;
-					height: 100%;
-				}
+	.artist {
+		margin-left: .5em;
+		color: @midGray;
 
-				.dragging, .valid, .invalid {
-					display: none;
-				}
-
-				&.dragging {
-					display: block;
-
-					.dragging {
-						display: inline;
-					}
-				}
-
-				&.valid .valid {
-					display: inline;
-				}
-
-				&.invalid .invalid {
-					display: inline;
-				}
-
-				&.valid .dragging, &.invalid .dragging {
-					display: none;
-				}
-			}
-		}
-
-		.title {
-			//font-family: NestorTitleFont;
-			font-weight: bold;
-			font-size: 1.2em;
+		.name {
 			color: @darkGray;
 		}
-
-		.artist {
-			margin-left: .5em;
-			color: @midGray;
-
-			.name {
-				color: @darkGray;
-			}
-		}
-
-		.year, .tracks {
-			display: block;
-			color: @midGray;
-		}
-
-		.play-indicator {
-			svg {
-				height: .75em;
-			}
-
-			margin-right: .25em;
-
-			display: none;
-			vertical-align: top;
-		}
-
-		@media @medium {
-			.info-clear {
-				clear: both;
-			}
-		}
 	}
 
-	&.playlist.playing .info .play-indicator {
-		display: inline;
+	.year, .tracks {
+		display: block;
+		color: @midGray;
 	}
 
-	ul.tracklist {
-		list-style-type: none;
-		margin-left: @coverSize + @albumMargins;
-
-		@media @medium {
-			margin-left: 0;
+	.play-indicator {
+		svg {
+			height: .75em;
 		}
 
-		li.track {
-			display: flex;
-			flex-flow: row;
-			align-items: baseline;
+		margin-right: .25em;
 
-			.play-indicator {
-				visibility: hidden;
+		display: none;
+		vertical-align: top;
+	}
 
-				svg {
-					height: .75em;
-					fill: @yellow !important;
-				}
-			}
-
-			&.playing .play-indicator {
-				visibility: visible;
-			}
-
-			.number {
-				flex-basis: 1.5em;
-				margin-right: .25em;
-				color: @mlGray;
-				text-align: right;
-			}
-
-			.title, .artist {
-			}
-
-			.artist {
-				color: @mlGray;
-			}
-
-			.length {
-				margin-left: auto;
-				color: @mlGray;
-			}
-
-			.controls {
-				flex-basis: 1em;
-
-				.menuicon {
-					visibility: hidden;
-				}
-			}
-
-			&:hover .controls .menuicon {
-				visibility: visible;
-			}
-
+	@media @medium {
+		.info-clear {
+			clear: both;
 		}
 	}
 }
 
-.playlist {
-	ul.tracklist {
-		.track .artist {
-			color: @mlGray;
+/* Album tracklist style */
+
+ul.tracklist {
+	list-style-type: none;
+	margin-left: @coverSize + @albumMargins;
+
+	@media @medium {
+		margin-left: 0;
+	}
+}
+
+/* Individual track style */
+
+li.track {
+	display: flex;
+	flex-flow: row;
+	align-items: baseline;
+
+	.play-indicator {
+		visibility: hidden;
+
+		svg {
+			height: .75em;
+			fill: @yellow !important;
 		}
+	}
+
+	&.playing .play-indicator {
+		visibility: visible;
+	}
+
+	.number {
+		flex-basis: 1.5em;
+		margin-right: .25em;
+		color: @mlGray;
+		text-align: right;
+	}
+
+	.title, .artist {
+	}
+
+	.artist {
+		color: @mlGray;
+	}
+
+	.length {
+		margin-left: auto;
+		color: @mlGray;
+	}
+
+	.controls {
+		flex-basis: 1em;
+
+		.menuicon {
+			visibility: hidden;
+		}
+	}
+
+	&:hover .controls .menuicon {
+		visibility: visible;
 	}
 }

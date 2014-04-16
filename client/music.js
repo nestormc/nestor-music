@@ -13,12 +13,12 @@ function(ui, router) {
 
 	return {
 		title: "music",
-		css: "albumlist",
 		views: {
 			albums: {
 				type: "main",
 				link: "albums",
-				icon: "music:album"
+				icon: "music:album",
+				css: "albumlist"
 			}
 		}
 	};
