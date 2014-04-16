@@ -44,64 +44,6 @@ define([
 			}
 		},
 
-		".cover": {
-			"dragover": function(e) {
-				var dropzone = $(this, ".dropzone");
-
-				if (dropzone.promise) {
-					return;
-				}
-
-				dropzone.classList.add("dragging");
-				dropzone.promise = util.dropImage(e.dataTransfer);
-
-				dropzone.promise
-				.then(function(src) {
-					dropzone.classList.add("valid");
-					$(dropzone, ".valid").src = src;
-				})
-				.otherwise(function() {
-					dropzone.classList.add("invalid");
-				});
-
-				e.preventDefault();
-				return false;
-			}
-		},
-
-		".cover .dropzone": {
-			"dragleave": function(e) {
-				delete this.promise;
-
-				this.classList.remove("dragging");
-				this.classList.remove("valid");
-				this.classList.remove("invalid");
-
-				e.stopPropagation();
-			},
-
-			"drop": function(e) {
-				var album = $P(this, ".album"),
-					dropzone = this;
-
-				this.promise.then(function(src) {
-					$(album, ".cover img").src = src;
-					resources.covers.save(album.dataset.artist, album.dataset.title, src);
-					delete dropzone.promise;
-				})
-				.otherwise(function() {
-					delete dropzone.promise;
-				});
-
-				this.classList.remove("dragging");
-				this.classList.remove("valid");
-				this.classList.remove("invalid");
-
-				e.preventDefault();
-				return false;
-			}
-		},
-
 		".list": {
 			/* Unselect tracks */
 			"click": function(e) {

@@ -72,12 +72,7 @@
 		.info.content-box-header
 			.cover
 				img.current[src={{ uri("/rest/music-images/cover:%s:%s", artist, title) }}]
-				.dropzone
-					img.valid
-					span.dragging
-						@icon "dragimage"
-					span.invalid
-						@icon "cancel"
+
 			span.title.editable "{{ title || 'Unknown album' }}"
 			span.artist
 				span.by "by "
