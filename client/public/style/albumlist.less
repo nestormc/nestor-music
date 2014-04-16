@@ -112,7 +112,7 @@ ul.tracklist {
 li.track {
 	display: flex;
 	flex-flow: row;
-	align-items: baseline;
+	align-items: top;
 
 	.play-indicator {
 		visibility: hidden;
@@ -148,13 +148,5 @@ li.track {
 
 	.controls {
 		flex-basis: 1em;
-
-		.menuicon {
-			visibility: hidden;
-		}
-	}
-
-	&:hover .controls .menuicon {
-		visibility: visible;
 	}
 }
