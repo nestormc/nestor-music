@@ -187,7 +187,12 @@ module.exports = function imageStore(nestor) {
 		.sub(":imageKey")
 			.get(function(req, cb) {
 				var image = req.mongoose.doc;
-				cb(null, image.data, image.mime);
+
+				if (image) {
+					cb(null, image.data, image.mime);
+				} else {
+					cb.notFound();
+				}
 			});
 
 	intents.on("nestor:startup", function() {
